@@ -473,11 +473,11 @@ void rtapi_print_msg(int level, const char *fmt, ...)
 {
     va_list args;
 
-    if ((level <= msg_level) && (msg_level != RTAPI_MSG_NONE)) {
+    ///if ((level <= msg_level) && (msg_level != RTAPI_MSG_NONE)) {
 	va_start(args, fmt);
 	rtapi_msg_handler(level, fmt, args);
 	va_end(args);
-    }
+    ///}
 }
 
 int rtapi_set_msg_level(int level)

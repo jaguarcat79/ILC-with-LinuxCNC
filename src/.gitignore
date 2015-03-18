@@ -17,3 +17,9 @@ config.h.in
 configure
 .html-images-stamp
 .htmldoc-stamp
+ramdisk.sh
+../configs/sim/axis/actup_x.txt
+../configs/sim/axis/actup_y.txt
+../configs/sim/axis/desp_x.txt
+../configs/sim/axis/desp_y.txt
+

@@ -70,6 +70,14 @@
 #include "rtapi_math.h"
 #include "motion_types.h"
 
+//for test,
+#include <linux/kernel.h>
+
+//for test,
+long long int begin , end;
+long int total_time;
+char *poscounter_char;
+
 // Mark strings for translation, but defer translation to userspace
 #define _(s) (s)
 
@@ -362,6 +370,9 @@ void emcmotCommandHandler(void *arg, long period)
     double tmp1;
     emcmot_comp_entry_t *comp_entry;
     char issue_atspeed = 0;
+    
+    //joint->record_begin = 0; //for test
+    //joint->record_end = 0;
     
 check_stuff ( "before command_handler()" );
 
@@ -919,6 +930,14 @@ check_stuff ( "before command_handler()" );
 		   kins */
 		rehomeAll = 1;
 	    }
+	    //for test,
+	    if(PosCountFlag_begin == 0){
+	      rtapi_print_msg(RTAPI_MSG_INFO, "\nDebug: begin to count\n");
+	      //begin = rtapi_get_clocks();
+	      poscounter = 1;
+	      PosCountFlag_begin = 1;
+	    } 
+	    
 	    break;
 
 	case EMCMOT_SET_CIRCLE:
@@ -961,12 +980,23 @@ check_stuff ( "before command_handler()" );
 		SET_MOTION_ERROR_FLAG(1);
 		break;
 	    } else {
+	      //for test,
+	      rtapi_print_msg(RTAPI_MSG_DBG, "\ntpAddCircle: queue goalX= %f", emcmotDebug->queue.goalPos.tran.x);
+	      
 		SET_MOTION_ERROR_FLAG(0);
 		/* set flag that indicates all joints need rehoming, if any
 		   joint is moved in joint mode, for machines with no forward
 		   kins */
 		rehomeAll = 1;
 	    }
+	    //for test
+	    if(PosCountFlag_begin == 0){
+	      rtapi_print_msg(RTAPI_MSG_INFO, "\nDebug: begin to count\n");
+	      //begin = rtapi_get_clocks();
+	      poscounter = 1;
+	      PosCountFlag_begin = 1;
+	    } 
+	    
 	    break;
 
 	case EMCMOT_SET_VEL:
@@ -1492,6 +1522,7 @@ check_stuff ( "before command_handler()" );
 
 	case EMCMOT_SPINDLE_ON:
 	    rtapi_print_msg(RTAPI_MSG_DBG, "SPINDLE_ON");
+	    
 	    emcmotStatus->spindle.speed = emcmotCommand->vel;
 	    emcmotStatus->spindle.css_factor = emcmotCommand->ini_maxvel;
 	    emcmotStatus->spindle.xoffset = emcmotCommand->acc;
@@ -1506,6 +1537,23 @@ check_stuff ( "before command_handler()" );
 
 	case EMCMOT_SPINDLE_OFF:
 	    rtapi_print_msg(RTAPI_MSG_DBG, "SPINDLE_OFF");
+	    
+	    //for test,
+	    if(PosCountFlag_begin == 1 && PosCountFlag_end == 0){
+	      //end = rtapi_get_clocks();
+	      //total_time = (long int)(end - begin) * 1e6 / cpu_khz;
+	      
+	      //rtapi_print_msg(RTAPI_MSG_DBG, "\nDebug total time = %ld ns\n", total_time);
+	      rtapi_print_msg(RTAPI_MSG_DBG, "\nDebug: postition counter = %d \n", poscounter);
+	      PosCountFlag_end = 1;
+	      
+	      //itoa_handcode(poscounter, poscounter_char);
+	      //itoa_handcode(poscounter, poscounter_char);
+	      //rtapi_print_msg(RTAPI_MSG_DBG, "\nDebug: position counter in string = %s(in reverse) \n", poscounter_char);
+	      //file_write(Openfile_postotal, 0, poscounter_char, 4);
+
+	    }
+	    
 	    emcmotStatus->spindle.speed = 0;
 	    emcmotStatus->spindle.direction = 0;
 	    emcmotStatus->spindle.brake = 1; // engage brake

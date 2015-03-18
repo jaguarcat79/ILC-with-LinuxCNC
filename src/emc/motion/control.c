@@ -24,6 +24,8 @@
 #include "tc.h"
 #include "motion_debug.h"
 #include "config.h"
+//for test,
+#include <linux/fs.h>
 
 // Mark strings for translation, but defer translation to userspace
 #define _(s) (s)
@@ -31,6 +33,11 @@
 /***********************************************************************
 *                  LOCAL VARIABLE DECLARATIONS                         *
 ************************************************************************/
+
+//for test,
+long long int begintest = 0, endtest = 0;
+long int totaltimetest = 0;
+long int totaltimetest2 = 0;
 
 /*! \todo FIXME - this is a leftover global, it will eventually go away */
 int rehomeAll;
@@ -351,7 +358,7 @@ check_stuff ( "after update_status()" );
    prototypes"
 */
 
-static void process_probe_inputs(void) {
+static void process_probe_inputs(void) { //for test, don't know when it statrs
     static int old_probeVal = 0;
     unsigned char probe_type = emcmotStatus->probe_type;
 
@@ -373,11 +380,13 @@ static void process_probe_inputs(void) {
             emcmotStatus->probeTripped = 1;
             tpAbort(&emcmotDebug->queue);
         /* check if the probe hasn't tripped, but the move finished */
+	
         } else if (GET_MOTION_INPOS_FLAG() && tpQueueDepth(&emcmotDebug->queue) == 0) {
             /* we are already stopped, but we need to remember the current 
                position here, because it will still be queried */
             emcmotStatus->probedPos = emcmotStatus->carte_pos_fb;
             emcmotStatus->probing = 0;
+	    
             if (probe_suppress) {
                 emcmotStatus->probeTripped = 0;
             } else if(probe_whenclears) {
@@ -387,7 +396,7 @@ static void process_probe_inputs(void) {
                 reportError(_("G38.2 move finished without making contact."));
                 SET_MOTION_ERROR_FLAG(1);
             }
-        }
+        }    
     } else if (!old_probeVal && emcmotStatus->probeVal) {
         // not probing, but we have a rising edge on the probe.
         // this could be expensive if we don't stop.
@@ -433,6 +442,7 @@ static void process_probe_inputs(void) {
             reportError(_("Probe tripped during a jog."));
         }
     }
+    
     old_probeVal = emcmotStatus->probeVal;
 }
 
@@ -493,13 +503,16 @@ static void process_inputs(void)
 	joint_data = &(emcmot_hal_data->joint[joint_num]);
 	/* point to joint data */
 	joint = &joints[joint_num];
+	
 	if (!GET_JOINT_ACTIVE_FLAG(joint)) {
 	    /* if joint is not active, skip it */
 	    continue;
 	}
+	
 	/* copy data from HAL to joint structure */
 	joint->index_enable = *(joint_data->index_enable);
 	joint->motor_pos_fb = *(joint_data->motor_pos_fb);
+	
 	/* calculate pos_fb */
 	if (( joint->home_state == HOME_INDEX_SEARCH_WAIT ) &&
 	    ( joint->index_enable == 0 )) {
@@ -512,10 +525,15 @@ static void process_inputs(void)
 	} else {
 	    /* normal case: subtract backlash comp and motor offset */
 	    joint->pos_fb = joint->motor_pos_fb -
-		(joint->backlash_filt + joint->motor_offset);
+		(joint->backlash_filt + joint->motor_offset);		
 	}
+	///for test
+	//rtapi_print_msg(RTAPI_MSG_DBG , "joint->pos_fb = %lf \n", joint->pos_fb);
+	//rtapi_print_msg(RTAPI_MSG_DBG , "joint->pos_cmd = %lf \n", joint->pos_cmd);
+	
 	/* calculate following error */
 	joint->ferror = joint->pos_cmd - joint->pos_fb;
+	
 	abs_ferror = fabs(joint->ferror);
 	/* update maximum ferror if needed */
 	if (abs_ferror > joint->ferror_high_mark) {
@@ -625,11 +643,15 @@ static void do_forward_kins(void)
 	joint = &joints[joint_num];
 	/* copy feedback */
 	joint_pos[joint_num] = joint->pos_fb;
+	
 	/* check for homed, only if the current joint is active */
 	if (!GET_JOINT_ACTIVE_FLAG(joint)) {
 	    /* if joint is not active, don't even look at its limits */
 	    continue;
 	}
+	///for test,
+	/*if(joint_num == 0)
+	  rtapi_print_msg(RTAPI_MSG_DBG , "Debug: [Do_forward kins]\n"); */
     }
     switch (kinType) {
 
@@ -702,6 +724,7 @@ static void check_for_faults(void)
     for (joint_num = 0; joint_num < num_joints; joint_num++) {
 	/* point to joint data */
 	joint = &joints[joint_num];
+	
 	/* only check active, enabled axes */
 	if ( GET_JOINT_ACTIVE_FLAG(joint) && GET_JOINT_ENABLE_FLAG(joint) ) {
 	    /* are any limits for this joint overridden? */
@@ -746,6 +769,9 @@ static void check_for_faults(void)
 	/* end of if JOINT_ACTIVE_FLAG(joint) */
 	}
     /* end of check for joint faults loop */
+    ///for test
+    /*if(joint_num == 0)
+      rtapi_print_msg(RTAPI_MSG_DBG , "Debug: [Check_for_faults]\n"); */
     }
 }
 
@@ -753,6 +779,7 @@ static void set_operating_mode(void)
 {
     int joint_num;
     emcmot_joint_t *joint;
+    
 
     /* check for disabling */
     if (!emcmotDebug->enabling && GET_MOTION_ENABLE_FLAG()) {
@@ -761,6 +788,7 @@ static void set_operating_mode(void)
 	for (joint_num = 0; joint_num < num_joints; joint_num++) {
 	    /* point to joint data */
 	    joint = &joints[joint_num];
+	    
 	    /* disable free mode planner */
 	    joint->free_tp_enable = 0;
 	    /* drain coord mode interpolators */
@@ -788,7 +816,9 @@ static void set_operating_mode(void)
     }
 
     /* check for emcmotDebug->enabling */
-    if (emcmotDebug->enabling && !GET_MOTION_ENABLE_FLAG()) {
+    /* for test, this check operation do one time
+       when CMD 110, code 3 ENABLE */
+    if (emcmotDebug->enabling && !GET_MOTION_ENABLE_FLAG()) { 
 	tpSetPos(&emcmotDebug->queue, emcmotStatus->carte_pos_cmd);
 	for (joint_num = 0; joint_num < num_joints; joint_num++) {
 	    /* point to joint data */
@@ -865,6 +895,9 @@ static void set_operating_mode(void)
 		SET_MOTION_COORD_FLAG(1);
 		SET_MOTION_TELEOP_FLAG(0);
 		SET_MOTION_ERROR_FLAG(0);
+		///for test, print and file open
+		rtapi_print_msg(RTAPI_MSG_DBG , "Debug: [Set_operating_mode] emcmotDebug coord\n");
+		
 	    } else {
 		/* not in position-- don't honor mode change */
 		emcmotDebug->coordinating = 0;
@@ -903,6 +936,7 @@ static void set_operating_mode(void)
     } else {
 	emcmotStatus->motion_state = EMCMOT_MOTION_FREE;
     }
+    
 }
 
 static void handle_jogwheels(void)
@@ -917,10 +951,15 @@ static void handle_jogwheels(void)
 	/* point to joint data */
 	joint_data = &(emcmot_hal_data->joint[joint_num]);
 	joint = &joints[joint_num];
+	
 	if (!GET_JOINT_ACTIVE_FLAG(joint)) {
 	    /* if joint is not active, skip it */
 	    continue;
 	}
+	///for test
+	/*if(joint_num == 0)
+	  rtapi_print_msg(RTAPI_MSG_DBG , "Debug: [Handle_jogwheels]\n"); */
+	
 	/* get counts from jogwheel */
 	new_jog_counts = *(joint_data->jog_counts);
 	delta = new_jog_counts - joint->old_jog_counts;
@@ -1027,19 +1066,29 @@ static void get_pos_cmds(long period)
     /* used in teleop mode to compute the max accell requested */
     double accell_mag;
     int onlimit;
+    
+    //for test,
+    // by Yu-Tsai, Yeh
+    char ILCposition_cx[72];
+    char ILCposition_cy[72];
+    float ILCposition_x = 0.0, ILCposition_y = 0.0;
+    int char_check,clean;
+    struct file* ILC_x;
+    struct file* ILC_y;
+    ILC_x = Openfile_dx;
+    ILC_y = Openfile_dy;
 
     /* copy joint position feedback to local array */
     for (joint_num = 0; joint_num < num_joints; joint_num++) {
 	/* point to joint struct */
 	joint = &joints[joint_num];
 	/* copy coarse command */
-	positions[joint_num] = joint->coarse_pos;
+	positions[joint_num] = joint->coarse_pos; //for test, at a special time, coarse_pos pop up nonzero value
     }
     /* if less than a full complement of joints, zero out the rest */
     while ( joint_num < EMCMOT_MAX_JOINTS ) {
         positions[joint_num++] = 0.0;
     }
-
 
     /* RUN MOTION CALCULATIONS: */
 
@@ -1205,15 +1254,33 @@ static void get_pos_cmds(long period)
 	}
         /* end of FREE mode */
 	break;
-    case EMCMOT_MOTION_COORD:
+	
+    /* for test,
+       come up some values when CMD 110, code 3 ENABLE
+       disappear when CMD 339, code 4 EISABLE */
+    case EMCMOT_MOTION_COORD:  
+      //for test,
+      //begintest = rtapi_get_clocks();
+      //totaltimetest = (long int)(endtest - begintest) *1000000 / cpu_khz;
+      //totaltimetest2 += totaltimetest;
+      //rtapi_print_msg(RTAPI_MSG_INFO, "Debug: sample time= %ld ns\n", totaltimetest);
+      //rtapi_print_msg(RTAPI_MSG_INFO, "Debug: total sample time= %ld ns\n", totaltimetest2);
+	  
 	/* check joint 0 to see if the interpolators are empty */
 	while (cubicNeedNextPoint(&(joints[0].cubic))) {
 	    /* they're empty, pull next point(s) off Cartesian planner */
 	    /* run coordinated trajectory planning cycle */
 	    tpRunCycle(&emcmotDebug->queue, period);
+	    //for test
+	    //rtapi_print_msg(RTAPI_MSG_INFO, "Debug: [get_pos_cmd] Debug-queue currentX(after tpRunCycle): %lf\n", emcmotDebug->queue.currentPos.tran.x);
+	    //emcmotDebug->debugILCPos.tran.x = emcmotCommand->cmdILCPos.tran.x;
+	    //emcmotDebug->debugILCPos.tran.y = emcmotCommand->cmdILCPos.tran.y;
+	    //rtapi_print_msg(RTAPI_MSG_DBG, "TEST open file: X= %f\n", emcmotDebug->debugILCPos.tran.x);
+	    //rtapi_print_msg(RTAPI_MSG_DBG, "TEST open file: Y= %f\n", emcmotDebug->debugILCPos.tran.y);	    
+	    
 	    /* gt new commanded traj pos */
-	    emcmotStatus->carte_pos_cmd = tpGetPos(&emcmotDebug->queue);
-	    /* OUTPUT KINEMATICS - convert to joints in local array */
+	    emcmotStatus->carte_pos_cmd = tpGetPos(&emcmotDebug->queue);	    
+// 	    /* OUTPUT KINEMATICS - convert to joints in local array */
 	    kinematicsInverse(&emcmotStatus->carte_pos_cmd, positions,
 		&iflags, &fflags);
 	    /* copy to joint structures and spline them up */
@@ -1221,13 +1288,86 @@ static void get_pos_cmds(long period)
 		/* point to joint struct */
 		joint = &joints[joint_num];
 		joint->coarse_pos = positions[joint_num];
+		///for test,
+		/*if(joint_num == 0 && joint->coarse_pos != 0)
+		  rtapi_print_msg(RTAPI_MSG_DBG , "Debug: [get_pos_cmd] coarse_pos(after Inverse) : %lf\n", joint->coarse_pos); */
+		
 		/* spline joints up-- note that we may be adding points
 		   that fail soft limits, but we'll abort at the end of
 		   this cycle so it doesn't really matter */
 		cubicAddPoint(&(joint->cubic), joint->coarse_pos);
 	    }
 	    /* END OF OUTPUT KINS */
+	}	
+	//for test,
+	if(emcmotCommand->command == EMCMOT_SET_CIRCLE){
+	  rtapi_print_msg(RTAPI_MSG_INFO, "Debug: readoffset_x:%d\n", ReadOffset_x);
+	  rtapi_print_msg(RTAPI_MSG_INFO, "Debug: readoffset_y:%d\n", ReadOffset_y);
+	  if(file_read(ILC_x, ReadOffset_x, ILCposition_cx, 9) < 0 || file_read(ILC_y, ReadOffset_y, ILCposition_cy, 9) < 0){
+	    break;	      
+	  }
+	  else{
+	    for(char_check = 8; char_check <= 11; char_check++)
+	    {
+	      if(ILCposition_cx[char_check] == '\n'){
+		ILCposition_cx[char_check] = '\0';
+		ReadOffset_x += char_check +1;
+	      } else{
+		ILCposition_cx[0] = '\0';
+		//for(clean = 0; clean <=char_check +1; clean++){
+		  //ILCposition_cx[clean] = '';
+		//} 
+		file_read(ILC_x, ReadOffset_x, ILCposition_cx, char_check+2);
+		continue;
+	      }
+	    }
+	    
+	    for(char_check = 8; char_check <= 11; char_check++)
+	    {
+	      if(ILCposition_cy[char_check] == '\n'){
+		ILCposition_cy[char_check] = '\0';
+		ReadOffset_y += char_check +1;
+	      } else{
+		ILCposition_cy[0] = '\0';
+		//for(clean = 0; clean <=char_check +1; clean++){
+		  //ILCposition_cy[clean] = '';
+		//} 
+		file_read(ILC_y, ReadOffset_y, ILCposition_cy, char_check+2);
+		continue;
+	      }
+	    }
+	    
+	    ILCposition_x = StringToFloat(ILCposition_cx);
+	    ILCposition_x /= 25.4;
+	    ILCposition_y = StringToFloat(ILCposition_cy);
+	    ILCposition_y /= 25.4;
+	    rtapi_print_msg(RTAPI_MSG_INFO, "Debug: read file in controller x:%f\n", ILCposition_x);
+	    rtapi_print_msg(RTAPI_MSG_INFO, "Debug: read file in controller y:%f\n", ILCposition_y);
+	    rtapi_print_msg(RTAPI_MSG_INFO, "Debug: read file in controller x:%c\n", ILCposition_cx[0]);
+	    rtapi_print_msg(RTAPI_MSG_INFO, "Debug: read file in controller x:%c\n", ILCposition_cx[1]);
+	    rtapi_print_msg(RTAPI_MSG_INFO, "Debug: read file in controller x:%c\n", ILCposition_cx[2]);
+	    rtapi_print_msg(RTAPI_MSG_INFO, "Debug: read file in controller x:%c\n", ILCposition_cx[3]);
+	    rtapi_print_msg(RTAPI_MSG_INFO, "Debug: read file in controller x:%c\n", ILCposition_cx[4]);
+	    rtapi_print_msg(RTAPI_MSG_INFO, "Debug: read file in controller x:%c\n", ILCposition_cx[5]);
+	    rtapi_print_msg(RTAPI_MSG_INFO, "Debug: read file in controller x:%c\n", ILCposition_cx[6]);
+	    rtapi_print_msg(RTAPI_MSG_INFO, "Debug: read file in controller x:%c\n", ILCposition_cx[7]);
+	    rtapi_print_msg(RTAPI_MSG_INFO, "Debug: read file in controller x:%c\n", ILCposition_cx[8]);
+	    rtapi_print_msg(RTAPI_MSG_INFO, "Debug: read file in controller y:%c\n", ILCposition_cy[0]);
+	    rtapi_print_msg(RTAPI_MSG_INFO, "Debug: read file in controller y:%c\n", ILCposition_cy[1]);
+	    rtapi_print_msg(RTAPI_MSG_INFO, "Debug: read file in controller y:%c\n", ILCposition_cy[2]);
+	    rtapi_print_msg(RTAPI_MSG_INFO, "Debug: read file in controller y:%c\n", ILCposition_cy[3]);
+	    rtapi_print_msg(RTAPI_MSG_INFO, "Debug: read file in controller y:%c\n", ILCposition_cy[4]);
+	    rtapi_print_msg(RTAPI_MSG_INFO, "Debug: read file in controller y:%c\n", ILCposition_cy[5]);
+	    rtapi_print_msg(RTAPI_MSG_INFO, "Debug: read file in controller y:%c\n", ILCposition_cy[6]);
+	    rtapi_print_msg(RTAPI_MSG_INFO, "Debug: read file in controller y:%c\n", ILCposition_cy[7]);
+	    rtapi_print_msg(RTAPI_MSG_INFO, "Debug: read file in controller y:%c\n", ILCposition_cy[8]);
+	  }
+	} 
+	
+	if(PosCountFlag_begin == 1 && stop_count == 0){
+	  poscounter += 1;
 	}
+	
 	/* there is data in the interpolators */
 	/* run interpolation */
 	for (joint_num = 0; joint_num < num_joints; joint_num++) {
@@ -1235,8 +1375,22 @@ static void get_pos_cmds(long period)
 	    joint = &joints[joint_num];
 	    /* save old command */
 	    old_pos_cmd = joint->pos_cmd;
+	    
+	    //for test,
+	    //if(emcmotCommand->command == EMCMOT_SET_CIRCLE && joint_num == 0){
+	      //joint->pos_cmd = ILCposition_x;
+	      //rtapi_print_msg(RTAPI_MSG_INFO, "Debug: joint->pos_cmd x= %f\n", joint->pos_cmd);
+	    //}
+	    //else if(emcmotCommand->command == EMCMOT_SET_CIRCLE && joint_num == 1){
+	      //joint->pos_cmd = ILCposition_y;
+	      //rtapi_print_msg(RTAPI_MSG_INFO, "Debug: joint->pos_cmd y= %f\n", joint->pos_cmd);
+	    //}
+	    //else{ 
 	    /* interpolate to get new one */
-	    joint->pos_cmd = cubicInterpolate(&(joint->cubic), 0, 0, 0, 0);
+	    joint->pos_cmd = cubicInterpolate(&(joint->cubic), 0, 0, 0, 0); // for test, now interpolate
+	    //rtapi_print_msg(RTAPI_MSG_INFO, "Debug: joint->pos_cmd = %f\n", joint->pos_cmd);	    
+	    //} 
+	    
 	    joint->vel_cmd = (joint->pos_cmd - old_pos_cmd) * servo_freq;
 	}
 	/* report motion status */
@@ -1244,6 +1398,8 @@ static void get_pos_cmds(long period)
 	if (tpIsDone(&emcmotDebug->queue)) {
 	    SET_MOTION_INPOS_FLAG(1);
 	}
+	//endtest = rtapi_get_clocks();
+	
 	break;
     case EMCMOT_MOTION_TELEOP:
 
@@ -1379,7 +1535,7 @@ static void get_pos_cmds(long period)
 	    /* save old command */
 	    old_pos_cmd = joint->pos_cmd;
 	    /* interpolate to get new one */
-	    joint->pos_cmd = cubicInterpolate(&(joint->cubic), 0, 0, 0, 0);
+	    joint->pos_cmd = cubicInterpolate(&(joint->cubic), 0, 0, 0, 0); //for test, now interpolate
 	    joint->vel_cmd = (joint->pos_cmd - old_pos_cmd) * servo_freq;
 	}
 
@@ -1389,6 +1545,7 @@ static void get_pos_cmds(long period)
     case EMCMOT_MOTION_DISABLED:
 	/* set position commands to match feedbacks, this avoids
 	   disturbances and/or following errors when enabling */
+	
 	emcmotStatus->carte_pos_cmd = emcmotStatus->carte_pos_fb;
 	for (joint_num = 0; joint_num < num_joints; joint_num++) {
 	    /* point to joint struct */
@@ -1543,10 +1700,15 @@ static void compute_screw_comp(void)
     for (joint_num = 0; joint_num < num_joints; joint_num++) {
         /* point to joint struct */
         joint = &joints[joint_num];
+	
 	if (!GET_JOINT_ACTIVE_FLAG(joint)) {
 	    /* if joint is not active, skip it */
 	    continue;
 	}
+	///for test
+	/*if(joint_num == 0)
+	  rtapi_print_msg(RTAPI_MSG_DBG , "Debug: [Compute_screw_comp]\n"); */
+	
 	/* point to compensation data */
 	comp = &(joint->comp);
 	if ( comp->entries > 0 ) {
@@ -1820,11 +1982,15 @@ static void output_to_hal(void)
     *(emcmot_hal_data->tooloffset_u) = emcmotStatus->tool_offset.u;
     *(emcmot_hal_data->tooloffset_v) = emcmotStatus->tool_offset.v;
     *(emcmot_hal_data->tooloffset_w) = emcmotStatus->tool_offset.w;
-
+    
     /* output joint info to HAL for scoping, etc */
     for (joint_num = 0; joint_num < num_joints; joint_num++) {
 	/* point to joint struct */
 	joint = &joints[joint_num];
+	///for test
+	if(joint_num == 0)
+	  rtapi_print_msg(RTAPI_MSG_DBG , "Debug: [Output_to_hal]\n");
+	
 	/* apply backlash and motor offset to output */
 	joint->motor_pos_cmd =
 	    joint->pos_cmd + joint->backlash_filt + joint->motor_offset;
@@ -1833,8 +1999,10 @@ static void output_to_hal(void)
 	/* write to HAL pins */
         *(joint_data->motor_offset) = joint->motor_offset;
 	*(joint_data->motor_pos_cmd) = joint->motor_pos_cmd;
-	*(joint_data->joint_pos_cmd) = joint->pos_cmd;
+	*(joint_data->joint_pos_cmd) = joint->pos_cmd;	
 	*(joint_data->joint_pos_fb) = joint->pos_fb;
+	//for test, joint->pos_cmd would not be zero when emc_set_motor_offset command starts
+	//rtapi_print_msg(RTAPI_MSG_DBG , "ToHal:joint->pos_cmd = %f \n", joint->pos_cmd); 
 	*(joint_data->amp_enable) = GET_JOINT_ENABLE_FLAG(joint);
 	*(joint_data->index_enable) = joint->index_enable;
 	*(joint_data->homing) = GET_JOINT_HOMING_FLAG(joint);
@@ -1880,6 +2048,10 @@ static void update_status(void)
     for (joint_num = 0; joint_num < num_joints; joint_num++) {
 	/* point to joint data */
 	joint = &joints[joint_num];
+	///for test
+	if(joint_num == 0)
+	  rtapi_print_msg(RTAPI_MSG_DBG , "Debug: [Update_status]\n\n");
+	
 	/* point to joint status */
 	joint_status = &(emcmotStatus->joint_status[joint_num]);
 	/* copy stuff */
@@ -1893,6 +2065,14 @@ static void update_status(void)
 	joint_status->flag = joint->flag;
 	joint_status->pos_cmd = joint->pos_cmd;
 	joint_status->pos_fb = joint->pos_fb;
+	//for test, pass record(begin/end) values from motion to taskintf
+	if(PosCountFlag_begin == 1 && PosCountFlag_end == 1){
+	  joint_status->record_begin = PosCountFlag_begin;
+	  joint_status->record_end = PosCountFlag_end;
+	  joint_status->poscounter = poscounter;
+	  stop_count += 1;
+	}
+	
 	joint_status->vel_cmd = joint->vel_cmd;
 	joint_status->ferror = joint->ferror;
 	joint_status->ferror_high_mark = joint->ferror_high_mark;
@@ -1941,4 +2121,3 @@ static void update_status(void)
     }
 #endif
 }
-

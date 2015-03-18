@@ -21,6 +21,11 @@
 #include "mot_priv.h"
 #include "rtapi_math.h"
 
+//for test, open file in kernel space
+#include <linux/fs.h>
+#include <asm/segment.h>
+#include <asm/uaccess.h>
+
 // Mark strings for translation, but defer translation to userspace
 #define _(s) (s)
 
@@ -101,6 +106,22 @@ struct emcmot_debug_t *emcmotDebug = 0;
 struct emcmot_internal_t *emcmotInternal = 0;
 struct emcmot_error_t *emcmotError = 0;	/* unused for RT_FIFO */
 
+//for test,
+struct file* Openfile_dx = 0;
+struct file* Openfile_dy = 0;
+struct file* Openfile_ax = 0;
+struct file* Openfile_ay = 0;
+struct file* Openfile_postotal = 0;
+int ReadOffset_x;
+int ReadOffset_y;
+int PosCountFlag_begin;
+int PosCountFlag_end;
+int poscounter;
+//long long int begin , end;
+//long int total_time;
+int ccc = 0;
+int stop_count;
+
 /***********************************************************************
 *                  LOCAL VARIABLE DECLARATIONS                         *
 ************************************************************************/
@@ -140,6 +161,110 @@ static int setServoCycleTime(double secs);
 /***********************************************************************
 *                     PUBLIC FUNCTION CODE                             *
 ************************************************************************/
+
+//for test, open and close
+struct file* file_open(const char* path, int flags, int rights) {
+    struct file* filp = NULL;
+    mm_segment_t oldfs;
+    int err = 0;
+
+    oldfs = get_fs();
+    set_fs(get_ds());
+    filp = filp_open(path, flags, rights);
+    set_fs(oldfs);
+    if(IS_ERR(filp)) {
+        err = PTR_ERR(filp);
+        return NULL;
+    }
+    return filp;
+}
+
+void file_close(struct file* file) {
+    filp_close(file, NULL);
+}
+
+int file_read(struct file* file, unsigned long long offset, unsigned char* data, unsigned int size) {
+  mm_segment_t oldfs;
+  int ret;
+
+  oldfs = get_fs();
+  set_fs(get_ds());
+
+  ret = vfs_read(file, data, size, &offset);
+
+  set_fs(oldfs);
+  return ret;
+}
+
+int file_write(struct file* file, unsigned long long offset, unsigned char* data, unsigned int size) {
+  mm_segment_t oldfs;
+  int ret;
+  
+  oldfs = get_fs();
+  set_fs(get_ds());
+  
+  ret = vfs_write(file, data, size, &offset);
+  
+  set_fs(oldfs);
+  return ret;
+}
+
+/*int vconvert(const char *buffer, const char *fmt, ...) {
+  int rc;
+  va_list arg_ptr;
+  va_start(arg_ptr, fmt);
+  rc = vsscanf(buffer, fmt, arg_ptr);
+  va_end(arg_ptr);
+  return(rc);  
+} */
+
+void itoa_handcode(int n, char s[]) {
+  int i,j;
+
+  i = 0;
+  /*do{
+    s[i++] = n%10 + '0';
+  } while((n/=10) > 0); */
+  
+  for(j = n; j > 0; j/=10){
+    s[i++] = j%10 + '0';
+  }
+  s[i] = '\0';
+}
+
+/*void reverse(char s[]) {
+  int i, j;
+  char c;
+  
+  for(i = 0, j = stringcounter; i < j; i++, j--)
+  {
+    c = s[i];
+    s[i] = s[j];
+    s[j] = c;
+  }  
+} */
+
+float StringToFloat(const char* string){
+  float rez = 0, fact = 1;
+  int point_seen;
+  int dd;
+  if (*string == '-'){
+    string++;
+    fact = -1;
+  }
+  for (point_seen = 0; *string; string++){
+    if (*string == '.'){
+      point_seen = 1; 
+      continue;
+    }
+    dd= *string - '0';
+    if (dd >= 0 && dd <= 9){
+      if (point_seen) fact /= 10.0f;
+      rez = rez * 10.0f + (float)dd;
+    }
+  }
+  return rez * fact;
+}
 
 void emcmot_config_change(void)
 {
@@ -233,6 +358,18 @@ int rtapi_app_main(void)
 	return -1;
     }
 
+    //for test, open and read positions from files
+    PosCountFlag_begin = 0;
+    PosCountFlag_end = 0;
+    ReadOffset_x = 0;
+    ReadOffset_y = 0;
+    
+    //Openfile_dx = file_open("/mnt/ramdisk/desp_x.txt", O_RDWR | O_CREAT | O_APPEND, 0);
+    //Openfile_dy = file_open("/mnt/ramdisk/desp_y.txt", O_RDWR | O_CREAT | O_APPEND, 0);
+    //Openfile_ax = file_open("/mnt/ramdisk/actup_y.txt", O_RDWR | O_CREAT | O_APPEND, 0);
+    //Openfile_ay = file_open("/mnt/ramdisk/actup_y.txt", O_RDWR | O_CREAT | O_APPEND, 0);
+    //Openfile_postotal = file_open("/mnt/ramdisk/postotal.txt", O_RDWR | O_CREAT | O_APPEND, 0);
+    
     rtapi_print_msg(RTAPI_MSG_INFO, "MOTION: init_module() complete\n");
 
     hal_ready(mot_comp_id);
@@ -249,6 +386,15 @@ void rtapi_app_exit(void)
     rtapi_set_msg_handler(old_handler);
 
     rtapi_print_msg(RTAPI_MSG_INFO, "MOTION: cleanup_module() started.\n");
+    
+    //for test, close file
+    ReadOffset_x = 0;
+    ReadOffset_y = 0;
+    //file_close(Openfile_dx);
+    //file_close(Openfile_dy);
+    //file_close(Openfile_ax);
+    //file_close(Openfile_ay);
+    //file_close(Openfile_postotal);
 
     retval = hal_stop_threads();
     if (retval < 0) {
@@ -804,7 +950,7 @@ static int init_comm_buffers(void)
 {
     int joint_num, n;
     emcmot_joint_t *joint;
-    int retval;
+    int retval;    
 
     rtapi_print_msg(RTAPI_MSG_INFO,
 	"MOTION: init_comm_buffers() starting...\n");
@@ -819,12 +965,13 @@ static int init_comm_buffers(void)
     kinType = kinematicsType();
 
     /* allocate and initialize the shared memory structure */
-    emc_shmem_id = rtapi_shmem_new(key, mot_comp_id, sizeof(emcmot_struct_t));
+    emc_shmem_id = rtapi_shmem_new(key, mot_comp_id, sizeof(emcmot_struct_t)); //shared memory size = 2666512
     if (emc_shmem_id < 0) {
 	rtapi_print_msg(RTAPI_MSG_ERR,
 	    "MOTION: rtapi_shmem_new failed, returned %d\n", emc_shmem_id);
 	return -1;
     }
+    
     retval = rtapi_shmem_getptr(emc_shmem_id, (void **) &emcmotStruct);
     if (retval < 0) {
 	rtapi_print_msg(RTAPI_MSG_ERR,
@@ -836,10 +983,10 @@ static int init_comm_buffers(void)
     memset(emcmotStruct, 0, sizeof(emcmot_struct_t));
 
     /* we'll reference emcmotStruct directly */
-    emcmotCommand = &emcmotStruct->command;
-    emcmotStatus = &emcmotStruct->status;
+    emcmotCommand = &emcmotStruct->command; // size of emcmotStruct->debug is 420, for test
+    emcmotStatus = &emcmotStruct->status; // size of emcmotStruct->debug is 3056
     emcmotConfig = &emcmotStruct->config;
-    emcmotDebug = &emcmotStruct->debug;
+    emcmotDebug = &emcmotStruct->debug; // size of emcmotStruct->debug is 2630184
     emcmotInternal = &emcmotStruct->internal;
     emcmotError = &emcmotStruct->error;
 
@@ -896,6 +1043,7 @@ static int init_comm_buffers(void)
     emcmotConfig->kinematics_type = kinType;
 
     emcmotDebug->oldPos = emcmotStatus->carte_pos_cmd;
+    
     ZERO_EMC_POSE(emcmotDebug->oldVel);
 
     emcmot_config_change();
@@ -1019,12 +1167,12 @@ static int init_comm_buffers(void)
     }
 //    tpInit(&emcmotDebug->queue); // tpInit called from tpCreate
     tpSetCycleTime(&emcmotDebug->queue, emcmotConfig->trajCycleTime);
-    tpSetPos(&emcmotDebug->queue, emcmotStatus->carte_pos_cmd);
+    tpSetPos(&emcmotDebug->queue, emcmotStatus->carte_pos_cmd); //for test, set tp->currentpos and tp->goalpos to zeros
     tpSetVmax(&emcmotDebug->queue, emcmotStatus->vel, emcmotStatus->vel);
     tpSetAmax(&emcmotDebug->queue, emcmotStatus->acc);
 
-    emcmotStatus->tail = 0;
-
+    emcmotStatus->tail = 0;   
+    
     rtapi_print_msg(RTAPI_MSG_INFO, "MOTION: init_comm_buffers() complete\n");
     return 0;
 }

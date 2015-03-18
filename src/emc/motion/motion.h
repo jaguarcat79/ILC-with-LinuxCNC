@@ -232,6 +232,8 @@ extern "C" {
                                      |2 = move until probe clears */
         EmcPose tool_offset;        /* TLO */
 	unsigned char tail;	/* flag count for mutex detect */
+	
+	EmcPose cmdILCPos;	/* for test, ILC */
     } emcmot_command_t;
 
 /*! \todo FIXME - these packed bits might be replaced with chars
@@ -545,6 +547,10 @@ Suggestion: Split this in to an Error and a Status flag register..
 	double min_ferror;	/* zero speed following error limit */
 	double max_ferror;	/* max speed following error limit */
 	double home_offset;	/* dir/dist from switch to home point */
+	
+	int record_begin;	/* for test, */
+	int record_end;		/* record flag for desp and actup positions */
+	int poscounter;		/* catch up total positions */
     } emcmot_joint_status_t;
 
 

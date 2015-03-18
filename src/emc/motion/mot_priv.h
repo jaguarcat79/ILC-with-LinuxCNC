@@ -223,9 +223,29 @@ extern struct emcmot_debug_t *emcmotDebug;
 extern struct emcmot_internal_t *emcmotInternal;
 extern struct emcmot_error_t *emcmotError;
 
+//for test,
+extern struct file* Openfile_dx;
+extern struct file* Openfile_dy;
+extern struct file* Openfile_ax;
+extern struct file* Openfile_ay;
+extern struct file* Openfile_postotal;
+extern int ReadOffset_x;
+extern int ReadOffset_y;
+extern int PosCountFlag_begin;
+extern int PosCountFlag_end;
+extern int ccc;
+extern int poscounter;
+extern int stop_count;
+
 /***********************************************************************
 *                    PUBLIC FUNCTION PROTOTYPES                        *
 ************************************************************************/
+
+//for test,
+extern int file_read(struct file* file, unsigned long long offset, unsigned char* data, unsigned int size);
+extern int file_write(struct file* file, unsigned long long offset, unsigned char* data, unsigned int size);
+extern float StringToFloat(const char* string);
+extern void itoa_handcode(int n, char s[]);
 
 /* function definitions */
 extern void emcmotCommandHandler(void *arg, long period);

@@ -30,6 +30,11 @@
 #include "iniaxis.hh"
 #include "initraj.hh"
 
+#include <stdio.h>		/// for test
+#include <stdlib.h>		///
+#include <fcntl.h>		///
+//#include "mot_priv.h"
+
 /* define this to catch isnan errors, for rtlinux FPU register 
    problem testing */
 #define ISNAN_TRAP
@@ -554,12 +559,26 @@ int emcAxisUpdate(EMC_AXIS_STAT stat[], int numAxes)
 #ifdef WATCH_FLAGS
     static int old_joint_flag[8];
 #endif
-
+    
     // check for valid range
     if (numAxes <= 0 || numAxes > EMCMOT_MAX_JOINTS) {
 	return -1;
     }
-
+    
+    ///for test, open txt files
+    char fname1[] = "desp_x_0310.txt";
+    char fname2[] = "desp_y_0310.txt";
+    char fname3[] = "actup_x_0310.txt";
+    char fname4[] = "actup_y_0310.txt";
+    //int handle_dx = open(fname1, O_WRONLY | O_CREAT | O_APPEND, 0666);
+    //int handle_dy = open(fname2, O_WRONLY | O_CREAT | O_APPEND, 0666);
+    //int handle_ax = open(fname3, O_WRONLY | O_CREAT | O_APPEND, 0666);
+    //int handle_ay = open(fname4, O_WRONLY | O_CREAT | O_APPEND, 0666);
+    char buf_dx[20] = "";
+    char buf_dy[20] = "";
+    char buf_ax[20] = "";
+    char buf_ay[20] = "";
+    
     for (axis = 0; axis < numAxes; axis++) {
 	/* point to joint data */
 
@@ -576,6 +595,35 @@ int emcAxisUpdate(EMC_AXIS_STAT stat[], int numAxes)
 	}
 	stat[axis].output = joint->pos_cmd;
 	stat[axis].input = joint->pos_fb;
+	//for test,
+	//if(emcmotCommand.command = EMCMOT_SET_CIRCLE){
+	if(joint->record_begin == 1 && joint->record_end == 1){ //stars to record from SET_LINE(SET_CIRCLE) to SPINDLE_OFF 
+	  switch (axis)
+	  {
+	  case 0:
+	    joint->pos_cmd = joint->pos_cmd * 25.4;
+	    joint->pos_fb = joint->pos_fb * 25.4;
+	    sprintf(buf_dx, "%lf\n", joint->pos_cmd);
+	    sprintf(buf_ax, "%lf\n", joint->pos_fb);
+	    write(handle_dx, buf_dx, strlen(buf_dx));
+	    write(handle_ax, buf_ax, strlen(buf_ax));
+	    printf("poscounter(task) = %d", joint->poscounter);
+	    break; 
+	    
+	  case 1:
+	    joint->pos_cmd = joint->pos_cmd * 25.4;
+	    joint->pos_fb = joint->pos_fb * 25.4;
+	    sprintf(buf_dy, "%lf\n", joint->pos_cmd);
+	    sprintf(buf_ay, "%lf\n", joint->pos_fb);
+	    write(handle_dy, buf_dy, strlen(buf_dy));
+	    write(handle_ay, buf_ay, strlen(buf_ay));
+	    break;
+	    
+	  default:
+	    break;
+	  }
+	}
+	
 	stat[axis].velocity = joint->vel_cmd;
         stat[axis].ferrorCurrent = joint->ferror;
         stat[axis].ferrorHighMark = joint->ferror_high_mark;
@@ -621,6 +669,12 @@ int emcAxisUpdate(EMC_AXIS_STAT stat[], int numAxes)
 	    stat[axis].status = RCS_EXEC;
 	}
     }
+    ///for test, close files
+    //close(handle_dx);
+    //close(handle_dy);
+    //close(handle_ax);
+    //close(handle_ay);
+    
     return 0;
 }
 
@@ -987,8 +1041,12 @@ int emcTrajLinearMove(EmcPose end, int type, double vel, double ini_maxvel, doub
 
     emcmotCommand.command = EMCMOT_SET_LINE;
 
-    emcmotCommand.pos = end;
-
+    emcmotCommand.pos = end;    
+    //for test,
+    /*printf("EmcPose endpoint(Linear)_x = %lf\n",emcmotCommand.pos.tran.x);
+    printf("EmcPose endpoint(Linear)_y = %lf\n",emcmotCommand.pos.tran.y);
+    printf("EmcPose endpoint(Linear)_z = %lf _next\n",emcmotCommand.pos.tran.z); */
+    
     emcmotCommand.id = localEmcTrajMotionId;
     emcmotCommand.motion_type = type;
     emcmotCommand.vel = vel;
@@ -1016,6 +1074,11 @@ int emcTrajCircularMove(EmcPose end, PM_CARTESIAN center,
     emcmotCommand.command = EMCMOT_SET_CIRCLE;
 
     emcmotCommand.pos = end;
+    //for test,
+    /*printf("EmcPose endpoint(Circle)_x = %lf\n",emcmotCommand.pos.tran.x);
+    printf("EmcPose endpoint(Cricle)_y = %lf\n",emcmotCommand.pos.tran.y);
+    printf("EmcPose endpoint(Cricle)_z = %lf _next\n",emcmotCommand.pos.tran.z); */
+    
     emcmotCommand.motion_type = type;
 
     emcmotCommand.center.x = center.x;
@@ -1032,6 +1095,33 @@ int emcTrajCircularMove(EmcPose end, PM_CARTESIAN center,
     emcmotCommand.vel = vel;
     emcmotCommand.ini_maxvel = ini_maxvel;
     emcmotCommand.acc = acc;
+    
+    
+    //for test, open txt files
+    char afILC_name1[] = "/home/hpcaimhi/sim_x.txt";
+    char afILC_name2[] = "/home/hpcaimhi/sim_y.txt";
+    int handle_afx = open(afILC_name1, O_RDONLY, 0666);
+    int handle_afy = open(afILC_name2, O_RDONLY, 0666);
+    int i, j;
+    char buf_afx[72] = "";
+    char buf_afy[72] = "";
+    //double afxp, afyp;
+    
+    //for test, read positions here
+    //while(i = read(handle_afx, buf_afx, 9) > 0){
+      i = read(handle_afx, buf_afx, 9);
+      double afxp = strtod(buf_afx, NULL); 
+      //printf("afxp = %f\n",afxp);
+      emcmotCommand.cmdILCPos.tran.x = afxp / 25.4;
+    //}
+    //while(j = read(handle_afy, buf_afy, 9) > 0){
+      j = read(handle_afy, buf_afy, 9);
+      double afyp = strtod(buf_afy, NULL); 
+      emcmotCommand.cmdILCPos.tran.y = afyp / 25.4;
+    //}      
+    //for test, close files
+    close(handle_afx);
+    close(handle_afy);
 
     return usrmotWriteEmcmotCommand(&emcmotCommand);
 }
@@ -1207,8 +1297,9 @@ int emcPositionLoad() {
     if(!posfile || !posfile[0]) return 0;
     FILE *f = fopen(posfile, "r");
     if(!f) return 0;
-    for(int i=0; i<EMCMOT_MAX_JOINTS; i++) {
+    for(int i=0; i<EMCMOT_MAX_JOINTS; i++) { //for test EMCMOT_MAX_JOINTS = 9
 	int r = fscanf(f, "%lf", &positions[i]);
+	
 	if(r != 1) { fclose(f); return -1; }
     }
     fclose(f);
@@ -1220,6 +1311,7 @@ int emcPositionLoad() {
 }
 
 
+//for test, activate this function when ones shut down the LinuxCNC
 int emcPositionSave() {
     IniFile ini;
     const char *posfile;
@@ -1257,13 +1349,12 @@ int emcMotionInit()
     r2 = emcTrajInit(); // we want to check Traj first, the sane defaults for units are there
 
     r1 = 0;
-    for (axis = 0; axis < localEmcTrajAxes; axis++) {
+    r3 = emcPositionLoad();
+    for (axis = 0; axis < localEmcTrajAxes; axis++) { //for test, localEmcTrajAxes = 3
 	if (0 != emcAxisInit(axis)) {
 	    r1 = -1;		// at least one is busted
-	}
-    }
-
-    r3 = emcPositionLoad();
+	} 
+    }      
 
     if (r1 == 0 && r2 == 0 && r3 == 0) {
 	emcmotion_initialized = 1;
