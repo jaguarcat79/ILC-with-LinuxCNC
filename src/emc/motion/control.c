@@ -1300,7 +1300,7 @@ static void get_pos_cmds(long period)
 	    /* END OF OUTPUT KINS */
 	}	
 	//for test,
-	if(emcmotCommand->command == EMCMOT_SET_CIRCLE){
+	/*if(emcmotCommand->command == EMCMOT_SET_CIRCLE){
 	  rtapi_print_msg(RTAPI_MSG_INFO, "Debug: readoffset_x:%d\n", ReadOffset_x);
 	  rtapi_print_msg(RTAPI_MSG_INFO, "Debug: readoffset_y:%d\n", ReadOffset_y);
 	  if(file_read(ILC_x, ReadOffset_x, ILCposition_cx, 9) < 0 || file_read(ILC_y, ReadOffset_y, ILCposition_cy, 9) < 0){
@@ -1362,7 +1362,7 @@ static void get_pos_cmds(long period)
 	    rtapi_print_msg(RTAPI_MSG_INFO, "Debug: read file in controller y:%c\n", ILCposition_cy[7]);
 	    rtapi_print_msg(RTAPI_MSG_INFO, "Debug: read file in controller y:%c\n", ILCposition_cy[8]);
 	  }
-	} 
+	} */
 	
 	if(PosCountFlag_begin == 1 && stop_count == 0){
 	  poscounter += 1;

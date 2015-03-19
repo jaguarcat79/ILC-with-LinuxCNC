@@ -570,10 +570,10 @@ int emcAxisUpdate(EMC_AXIS_STAT stat[], int numAxes)
     char fname2[] = "desp_y_0310.txt";
     char fname3[] = "actup_x_0310.txt";
     char fname4[] = "actup_y_0310.txt";
-    //int handle_dx = open(fname1, O_WRONLY | O_CREAT | O_APPEND, 0666);
-    //int handle_dy = open(fname2, O_WRONLY | O_CREAT | O_APPEND, 0666);
-    //int handle_ax = open(fname3, O_WRONLY | O_CREAT | O_APPEND, 0666);
-    //int handle_ay = open(fname4, O_WRONLY | O_CREAT | O_APPEND, 0666);
+    int handle_dx = open(fname1, O_WRONLY | O_CREAT | O_APPEND, 0666);
+    int handle_dy = open(fname2, O_WRONLY | O_CREAT | O_APPEND, 0666);
+    int handle_ax = open(fname3, O_WRONLY | O_CREAT | O_APPEND, 0666);
+    int handle_ay = open(fname4, O_WRONLY | O_CREAT | O_APPEND, 0666);
     char buf_dx[20] = "";
     char buf_dy[20] = "";
     char buf_ax[20] = "";
@@ -670,10 +670,10 @@ int emcAxisUpdate(EMC_AXIS_STAT stat[], int numAxes)
 	}
     }
     ///for test, close files
-    //close(handle_dx);
-    //close(handle_dy);
-    //close(handle_ax);
-    //close(handle_ay);
+    close(handle_dx);
+    close(handle_dy);
+    close(handle_ax);
+    close(handle_ay);
     
     return 0;
 }
