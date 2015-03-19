@@ -35,6 +35,9 @@
 #include <fcntl.h>		///
 //#include "mot_priv.h"
 
+//for test,
+int saveFlag = 0;
+
 /* define this to catch isnan errors, for rtlinux FPU register 
    problem testing */
 #define ISNAN_TRAP
@@ -570,14 +573,18 @@ int emcAxisUpdate(EMC_AXIS_STAT stat[], int numAxes)
     char fname2[] = "desp_y_0310.txt";
     char fname3[] = "actup_x_0310.txt";
     char fname4[] = "actup_y_0310.txt";
+    char fname5[] = "totaltime.txt";
     int handle_dx = open(fname1, O_WRONLY | O_CREAT | O_APPEND, 0666);
     int handle_dy = open(fname2, O_WRONLY | O_CREAT | O_APPEND, 0666);
     int handle_ax = open(fname3, O_WRONLY | O_CREAT | O_APPEND, 0666);
     int handle_ay = open(fname4, O_WRONLY | O_CREAT | O_APPEND, 0666);
+    int handle_totalt = open(fname5, O_WRONLY | O_CREAT | O_APPEND, 0666);
     char buf_dx[20] = "";
     char buf_dy[20] = "";
     char buf_ax[20] = "";
     char buf_ay[20] = "";
+    char buf_totalt[40] = "";
+    float totalt = 0.0;
     
     for (axis = 0; axis < numAxes; axis++) {
 	/* point to joint data */
@@ -607,7 +614,7 @@ int emcAxisUpdate(EMC_AXIS_STAT stat[], int numAxes)
 	    sprintf(buf_ax, "%lf\n", joint->pos_fb);
 	    write(handle_dx, buf_dx, strlen(buf_dx));
 	    write(handle_ax, buf_ax, strlen(buf_ax));
-	    printf("poscounter(task) = %d", joint->poscounter);
+	    //printf("poscounter(task) = %d", joint->poscounter);
 	    break; 
 	    
 	  case 1:
@@ -622,7 +629,16 @@ int emcAxisUpdate(EMC_AXIS_STAT stat[], int numAxes)
 	  default:
 	    break;
 	  }
+	  if(saveFlag == 0) {
+	    printf("Debug: %d\n", joint->poscounter);
+	    totalt = (float)joint->poscounter / 1000;
+	    printf("Debug: %f\n", totalt);
+	    sprintf(buf_totalt, "%f", totalt);
+	    write(handle_totalt, buf_totalt, strlen(buf_totalt));
+	    saveFlag = 1;
+	  }
 	}
+	
 	
 	stat[axis].velocity = joint->vel_cmd;
         stat[axis].ferrorCurrent = joint->ferror;
@@ -674,6 +690,7 @@ int emcAxisUpdate(EMC_AXIS_STAT stat[], int numAxes)
     close(handle_dy);
     close(handle_ax);
     close(handle_ay);
+    close(handle_totalt);
     
     return 0;
 }
@@ -1398,7 +1415,7 @@ int emcMotionAbort()
     }
 
     r2 = emcTrajAbort();
-
+    
     return (r1 == 0 && r2 == 0 && r3 == 0) ? 0 : -1;
 }
 
