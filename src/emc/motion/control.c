@@ -26,6 +26,7 @@
 #include "config.h"
 //for test,
 #include <linux/fs.h>
+#include <linux/kernel.h>
 
 // Mark strings for translation, but defer translation to userspace
 #define _(s) (s)
@@ -38,7 +39,6 @@
 long long int begintest = 0, endtest = 0;
 long int totaltimetest = 0;
 long int totaltimetest2 = 0;
-float testvalue = 0.0;
 float* testfptr;
 char* testcptr;
 
@@ -2048,9 +2048,10 @@ static void update_status(void)
 
     //for test,
     char testbuf[20];
-    char testwrite[10] = "hello";
+    float testvalue;
     struct file* ptr;
     ptr = Openfile_testptr;
+    testvalue = 1.234599;
     
     /* copy status info from private joint structure to status
        struct in shared memory */
@@ -2080,16 +2081,18 @@ static void update_status(void)
 	  joint_status->record_end = PosCountFlag_end;
 	  joint_status->poscounter = poscounter;
 	  stop_count += 1;
+	  snprintf(testbuf, 20, "%f", testvalue);
+	  rtapi_print_msg(RTAPI_MSG_INFO, "Debug: %s\n",testbuf);
+	  //file_write(ptr, 0, testwrite, 9);
 	}
-	testvalue = 1.23; //for test, this method failed...
+	//for test, this method failed...
 	//testfptr = &testvalue;
 	//testcptr = (char*) testfptr;
 	//file_write(ptr, 0, testcptr, 4);
 	//file_write(ptr, 5, testcptr, 4);
 	//file_write(ptr, 9, testcptr, 4);
-	//snprintf(testbuf, 9, "%f", testvalue);
 	//file_write(ptr, 0, testbuf, 9);
-	//file_write(ptr, 0, testwrite, 9);
+	
 	
 	
 	joint_status->vel_cmd = joint->vel_cmd;

@@ -365,11 +365,11 @@ int rtapi_app_main(void)
     ReadOffset_x = 0;
     ReadOffset_y = 0;
     
-    Openfile_dx = file_open("/mnt/ramdisk/desp_x.txt", O_RDWR | O_CREAT | O_APPEND, 0);
-    Openfile_dy = file_open("/mnt/ramdisk/desp_y.txt", O_RDWR | O_CREAT | O_APPEND, 0);
-    Openfile_ax = file_open("/mnt/ramdisk/actup_y.txt", O_RDWR | O_CREAT | O_APPEND, 0);
-    Openfile_ay = file_open("/mnt/ramdisk/actup_y.txt", O_RDWR | O_CREAT | O_APPEND, 0);
-    Openfile_testptr = file_open("/home/hpcaimhi/testptr.txt", O_RDWR | O_CREAT | O_APPEND, 0);
+    Openfile_dx = file_open("/mnt/ramdisk/desp_x.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
+    Openfile_dy = file_open("/mnt/ramdisk/desp_y.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
+    Openfile_ax = file_open("/mnt/ramdisk/actup_y.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
+    Openfile_ay = file_open("/mnt/ramdisk/actup_y.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
+    Openfile_testptr = file_open("/mnt/ramdisk/testptr.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
     
     rtapi_print_msg(RTAPI_MSG_INFO, "MOTION: init_module() complete\n");
 
