@@ -1345,7 +1345,7 @@ static void get_pos_cmds(long period)
 	    ILCposition_y = StringToFloat(ILCposition_cy);
 	    ILCposition_y /= 25.4;
 	    rtapi_print_msg(RTAPI_MSG_INFO, "Debug: read file in controller x:%f\n", ILCposition_x);
-	    rtapi_print_msg(RTAPI_MSG_INFO, "Debug: read file in controller y:%f\n", ILCposition_y);
+	    rtapi_print_msg(RTAPI_MSG_INFO, "Debug: read file in controller y:%f\n", ILCposition_y); 
 	    rtapi_print_msg(RTAPI_MSG_INFO, "Debug: read file in controller x:%c\n", ILCposition_cx[0]);
 	    rtapi_print_msg(RTAPI_MSG_INFO, "Debug: read file in controller x:%c\n", ILCposition_cx[1]);
 	    rtapi_print_msg(RTAPI_MSG_INFO, "Debug: read file in controller x:%c\n", ILCposition_cx[2]);
@@ -2047,11 +2047,12 @@ static void update_status(void)
 #endif
 
     //for test,
-    char testbuf[20];
+    char testbuf[20] = "Hello";
     float testvalue;
+    int testvaluei;
     struct file* ptr;
     ptr = Openfile_testptr;
-    testvalue = 1.234599;
+    testvaluei = 22;
     
     /* copy status info from private joint structure to status
        struct in shared memory */
@@ -2076,14 +2077,15 @@ static void update_status(void)
 	joint_status->pos_cmd = joint->pos_cmd;
 	joint_status->pos_fb = joint->pos_fb;
 	//for test, pass record(begin/end) values from motion to taskintf
+	joint_status->record_begin = PosCountFlag_begin;
+	joint_status->record_end = PosCountFlag_end;
 	if(PosCountFlag_begin == 1 && PosCountFlag_end == 1){
-	  joint_status->record_begin = PosCountFlag_begin;
-	  joint_status->record_end = PosCountFlag_end;
+	  //joint_status->record_end = PosCountFlag_end;
 	  joint_status->poscounter = poscounter;
 	  stop_count += 1;
-	  snprintf(testbuf, 20, "%f", testvalue);
-	  rtapi_print_msg(RTAPI_MSG_INFO, "Debug: %s\n",testbuf);
-	  //file_write(ptr, 0, testwrite, 9);
+	  //snprintf(testbuf, 20, "%d", testvaluei);
+	  //rtapi_print_msg(RTAPI_MSG_INFO, "Debug: %s\n",testbuf);
+	  //file_write(ptr, 0, testbuf, 20);
 	}
 	//for test, this method failed...
 	//testfptr = &testvalue;

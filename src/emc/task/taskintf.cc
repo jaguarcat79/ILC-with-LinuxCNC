@@ -604,7 +604,7 @@ int emcAxisUpdate(EMC_AXIS_STAT stat[], int numAxes)
 	stat[axis].input = joint->pos_fb;
 	//for test,
 	//if(emcmotCommand.command = EMCMOT_SET_CIRCLE){
-	if(joint->record_begin == 1 && joint->record_end == 1){ //stars to record from SET_LINE(SET_CIRCLE) to SPINDLE_OFF 
+	if(joint->record_begin == 1 && joint->record_end == 0){ //stars to record from SET_LINE(SET_CIRCLE) to SPINDLE_OFF 
 	  switch (axis)
 	  {
 	  case 0:
@@ -629,12 +629,13 @@ int emcAxisUpdate(EMC_AXIS_STAT stat[], int numAxes)
 	  default:
 	    break;
 	  }
-	  if(saveFlag == 0) {
-	    totalt = (float)joint->poscounter / 1000;
-	    sprintf(buf_totalt, "%f", totalt);
-	    write(handle_totalt, buf_totalt, strlen(buf_totalt));
-	    saveFlag = 1;
-	  }
+	  
+	}
+	if(joint->record_end == 1 && saveFlag == 0) {
+	  totalt = (float)joint->poscounter / 1000;
+	  sprintf(buf_totalt, "%f", totalt);
+	  write(handle_totalt, buf_totalt, strlen(buf_totalt));
+	  saveFlag = 1;
 	}
 	
 	
