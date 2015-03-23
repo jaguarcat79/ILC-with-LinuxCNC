@@ -38,6 +38,9 @@
 long long int begintest = 0, endtest = 0;
 long int totaltimetest = 0;
 long int totaltimetest2 = 0;
+float testvalue = 0.0;
+float* testfptr;
+char* testcptr;
 
 /*! \todo FIXME - this is a leftover global, it will eventually go away */
 int rehomeAll;
@@ -2043,6 +2046,12 @@ static void update_status(void)
     static int old_motion_flag;
 #endif
 
+    //for test,
+    char testbuf[20];
+    char testwrite[10] = "hello";
+    struct file* ptr;
+    ptr = Openfile_testptr;
+    
     /* copy status info from private joint structure to status
        struct in shared memory */
     for (joint_num = 0; joint_num < num_joints; joint_num++) {
@@ -2072,6 +2081,16 @@ static void update_status(void)
 	  joint_status->poscounter = poscounter;
 	  stop_count += 1;
 	}
+	testvalue = 1.23; //for test, this method failed...
+	//testfptr = &testvalue;
+	//testcptr = (char*) testfptr;
+	//file_write(ptr, 0, testcptr, 4);
+	//file_write(ptr, 5, testcptr, 4);
+	//file_write(ptr, 9, testcptr, 4);
+	//snprintf(testbuf, 9, "%f", testvalue);
+	//file_write(ptr, 0, testbuf, 9);
+	//file_write(ptr, 0, testwrite, 9);
+	
 	
 	joint_status->vel_cmd = joint->vel_cmd;
 	joint_status->ferror = joint->ferror;

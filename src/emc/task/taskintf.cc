@@ -630,9 +630,7 @@ int emcAxisUpdate(EMC_AXIS_STAT stat[], int numAxes)
 	    break;
 	  }
 	  if(saveFlag == 0) {
-	    printf("Debug: %d\n", joint->poscounter);
 	    totalt = (float)joint->poscounter / 1000;
-	    printf("Debug: %f\n", totalt);
 	    sprintf(buf_totalt, "%f", totalt);
 	    write(handle_totalt, buf_totalt, strlen(buf_totalt));
 	    saveFlag = 1;

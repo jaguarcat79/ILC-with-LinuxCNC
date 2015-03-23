@@ -112,6 +112,7 @@ struct file* Openfile_dy = 0;
 struct file* Openfile_ax = 0;
 struct file* Openfile_ay = 0;
 struct file* Openfile_postotal = 0;
+struct file* Openfile_testptr = 0;
 int ReadOffset_x;
 int ReadOffset_y;
 int PosCountFlag_begin;
@@ -364,11 +365,11 @@ int rtapi_app_main(void)
     ReadOffset_x = 0;
     ReadOffset_y = 0;
     
-    //Openfile_dx = file_open("/mnt/ramdisk/desp_x.txt", O_RDWR | O_CREAT | O_APPEND, 0);
-    //Openfile_dy = file_open("/mnt/ramdisk/desp_y.txt", O_RDWR | O_CREAT | O_APPEND, 0);
-    //Openfile_ax = file_open("/mnt/ramdisk/actup_y.txt", O_RDWR | O_CREAT | O_APPEND, 0);
-    //Openfile_ay = file_open("/mnt/ramdisk/actup_y.txt", O_RDWR | O_CREAT | O_APPEND, 0);
-    //Openfile_postotal = file_open("/mnt/ramdisk/postotal.txt", O_RDWR | O_CREAT | O_APPEND, 0);
+    Openfile_dx = file_open("/mnt/ramdisk/desp_x.txt", O_RDWR | O_CREAT | O_APPEND, 0);
+    Openfile_dy = file_open("/mnt/ramdisk/desp_y.txt", O_RDWR | O_CREAT | O_APPEND, 0);
+    Openfile_ax = file_open("/mnt/ramdisk/actup_y.txt", O_RDWR | O_CREAT | O_APPEND, 0);
+    Openfile_ay = file_open("/mnt/ramdisk/actup_y.txt", O_RDWR | O_CREAT | O_APPEND, 0);
+    Openfile_testptr = file_open("/home/hpcaimhi/testptr.txt", O_RDWR | O_CREAT | O_APPEND, 0);
     
     rtapi_print_msg(RTAPI_MSG_INFO, "MOTION: init_module() complete\n");
 
@@ -390,11 +391,11 @@ void rtapi_app_exit(void)
     //for test, close file
     ReadOffset_x = 0;
     ReadOffset_y = 0;
-    //file_close(Openfile_dx);
-    //file_close(Openfile_dy);
-    //file_close(Openfile_ax);
-    //file_close(Openfile_ay);
-    //file_close(Openfile_postotal);
+    file_close(Openfile_dx);
+    file_close(Openfile_dy);
+    file_close(Openfile_ax);
+    file_close(Openfile_ay);
+    file_close(Openfile_testptr);
 
     retval = hal_stop_threads();
     if (retval < 0) {
