@@ -39,8 +39,6 @@
 long long int begintest = 0, endtest = 0;
 long int totaltimetest = 0;
 long int totaltimetest2 = 0;
-float* testfptr;
-char* testcptr;
 
 /*! \todo FIXME - this is a leftover global, it will eventually go away */
 int rehomeAll;
@@ -1392,7 +1390,7 @@ static void get_pos_cmds(long period)
 	    /* interpolate to get new one */
 	    joint->pos_cmd = cubicInterpolate(&(joint->cubic), 0, 0, 0, 0); // for test, now interpolate
 	    //rtapi_print_msg(RTAPI_MSG_INFO, "Debug: joint->pos_cmd = %f\n", joint->pos_cmd);	    
-	    //} 
+	    //}
 	    
 	    joint->vel_cmd = (joint->pos_cmd - old_pos_cmd) * servo_freq;
 	}
@@ -2050,9 +2048,11 @@ static void update_status(void)
     char testbuf[20] = "Hello";
     float testvalue;
     int testvaluei;
+    float* testfptr;
+    char* testcptr;
     struct file* ptr;
     ptr = Openfile_testptr;
-    testvaluei = 22;
+    testvalue = 22.2;
     
     /* copy status info from private joint structure to status
        struct in shared memory */
@@ -2079,7 +2079,20 @@ static void update_status(void)
 	//for test, pass record(begin/end) values from motion to taskintf
 	joint_status->record_begin = PosCountFlag_begin;
 	joint_status->record_end = PosCountFlag_end;
-	if(PosCountFlag_begin == 1 && PosCountFlag_end == 1){
+	if(PosCountFlag_begin == 1 && PosCountFlag_end == 0){
+	  if(joint_num == 0) {
+	    Xbuffer = &joint->pos_cmd;
+	    *Xbuffer++;
+	    
+	  } else if(joint_num == 1) {
+	    Ybuffer = &joint->pos_cmd;
+	    *Xbuffer++;
+	    
+	  } else {
+	    break;
+	  }
+	  
+	} else if (PosCountFlag_begin == 1 && PosCountFlag_end == 1) {
 	  //joint_status->record_end = PosCountFlag_end;
 	  joint_status->poscounter = poscounter;
 	  stop_count += 1;
@@ -2087,14 +2100,13 @@ static void update_status(void)
 	  //rtapi_print_msg(RTAPI_MSG_INFO, "Debug: %s\n",testbuf);
 	  //file_write(ptr, 0, testbuf, 20);
 	}
-	//for test, this method failed...
+	//for test, this method should work until write files function fixed
 	//testfptr = &testvalue;
 	//testcptr = (char*) testfptr;
+	//rtapi_print_msg(RTAPI_MSG_INFO, "Debug: testcptr= %s\n", testcptr);
 	//file_write(ptr, 0, testcptr, 4);
 	//file_write(ptr, 5, testcptr, 4);
-	//file_write(ptr, 9, testcptr, 4);
-	//file_write(ptr, 0, testbuf, 9);
-	
+	//file_write(ptr, 9, testcptr, 4);	
 	
 	
 	joint_status->vel_cmd = joint->vel_cmd;

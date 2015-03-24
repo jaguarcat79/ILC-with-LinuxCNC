@@ -569,10 +569,10 @@ int emcAxisUpdate(EMC_AXIS_STAT stat[], int numAxes)
     }
     
     ///for test, open txt files
-    char fname1[] = "desp_x_0310.txt";
-    char fname2[] = "desp_y_0310.txt";
-    char fname3[] = "actup_x_0310.txt";
-    char fname4[] = "actup_y_0310.txt";
+    char fname1[] = "desp_x_0325.txt";
+    char fname2[] = "desp_y_0325.txt";
+    char fname3[] = "actup_x_0325.txt";
+    char fname4[] = "actup_y_0325.txt";
     char fname5[] = "totaltime.txt";
     int handle_dx = open(fname1, O_WRONLY | O_CREAT | O_APPEND, 0666);
     int handle_dy = open(fname2, O_WRONLY | O_CREAT | O_APPEND, 0666);
@@ -612,8 +612,8 @@ int emcAxisUpdate(EMC_AXIS_STAT stat[], int numAxes)
 	    joint->pos_fb = joint->pos_fb * 25.4;
 	    sprintf(buf_dx, "%lf\n", joint->pos_cmd);
 	    sprintf(buf_ax, "%lf\n", joint->pos_fb);
-	    write(handle_dx, buf_dx, strlen(buf_dx));
-	    write(handle_ax, buf_ax, strlen(buf_ax));
+	    //write(handle_dx, buf_dx, strlen(buf_dx));
+	    //write(handle_ax, buf_ax, strlen(buf_ax));
 	    //printf("poscounter(task) = %d", joint->poscounter);
 	    break; 
 	    
@@ -622,8 +622,8 @@ int emcAxisUpdate(EMC_AXIS_STAT stat[], int numAxes)
 	    joint->pos_fb = joint->pos_fb * 25.4;
 	    sprintf(buf_dy, "%lf\n", joint->pos_cmd);
 	    sprintf(buf_ay, "%lf\n", joint->pos_fb);
-	    write(handle_dy, buf_dy, strlen(buf_dy));
-	    write(handle_ay, buf_ay, strlen(buf_ay));
+	    //write(handle_dy, buf_dy, strlen(buf_dy));
+	    //write(handle_ay, buf_ay, strlen(buf_ay));
 	    break;
 	    
 	  default:

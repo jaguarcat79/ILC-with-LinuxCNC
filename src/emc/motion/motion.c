@@ -122,6 +122,10 @@ int poscounter;
 //long int total_time;
 int ccc = 0;
 int stop_count;
+double *Xbuffer;
+double *Ybuffer;
+int OutputCounter_x;
+int OutputCounter_y;
 
 /***********************************************************************
 *                  LOCAL VARIABLE DECLARATIONS                         *
@@ -391,6 +395,8 @@ void rtapi_app_exit(void)
     //for test, close file
     ReadOffset_x = 0;
     ReadOffset_y = 0;
+    //free(Xbuffer);
+    //free(Ybuffer);
     file_close(Openfile_dx);
     file_close(Openfile_dy);
     file_close(Openfile_ax);
@@ -951,10 +957,16 @@ static int init_comm_buffers(void)
 {
     int joint_num, n;
     emcmot_joint_t *joint;
-    int retval;    
+    int retval;
 
     rtapi_print_msg(RTAPI_MSG_INFO,
 	"MOTION: init_comm_buffers() starting...\n");
+	
+    //for test, create buffers to store motor positions
+    Xbuffer = hal_malloc(6000 * sizeof(double));
+    Ybuffer = hal_malloc(6000 * sizeof(double));
+    OutputCounter_x = 0;
+    OutputCounter_y = 0;
 
     emcmotStruct = 0;
     emcmotDebug = 0;
