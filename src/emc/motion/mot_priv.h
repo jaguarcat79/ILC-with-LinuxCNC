@@ -239,8 +239,8 @@ extern int poscounter;
 extern int stop_count;
 extern double *Xbuffer;
 extern double *Ybuffer;
-extern int OutputCounter_x;
-extern int OutputCounter_y;
+extern int bufferCounter_x;
+extern int bufferCounter_y;
 
 /***********************************************************************
 *                    PUBLIC FUNCTION PROTOTYPES                        *

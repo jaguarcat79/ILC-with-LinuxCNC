@@ -124,8 +124,8 @@ int ccc = 0;
 int stop_count;
 double *Xbuffer;
 double *Ybuffer;
-int OutputCounter_x;
-int OutputCounter_y;
+int bufferCounter_x;
+int bufferCounter_y;
 
 /***********************************************************************
 *                  LOCAL VARIABLE DECLARATIONS                         *
@@ -368,9 +368,13 @@ int rtapi_app_main(void)
     PosCountFlag_end = 0;
     ReadOffset_x = 0;
     ReadOffset_y = 0;
+    bufferCounter_x = 0;
+    bufferCounter_y = 0;
     
-    Openfile_dx = file_open("/mnt/ramdisk/desp_x.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
-    Openfile_dy = file_open("/mnt/ramdisk/desp_y.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
+    Openfile_dx = file_open("/mnt/ramdisk/desp_x_0325.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
+    Openfile_dy = file_open("/mnt/ramdisk/desp_y_0325.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
+    //Openfile_dx = file_open("/mnt/ramdisk/desp_x.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
+    //Openfile_dy = file_open("/mnt/ramdisk/desp_y.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
     Openfile_ax = file_open("/mnt/ramdisk/actup_y.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
     Openfile_ay = file_open("/mnt/ramdisk/actup_y.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
     Openfile_testptr = file_open("/mnt/ramdisk/testptr.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
@@ -387,10 +391,19 @@ int rtapi_app_main(void)
 void rtapi_app_exit(void)
 {
     int retval;
+    //for test,
+    int i;
+    char XOutput[20];
 
     rtapi_set_msg_handler(old_handler);
 
     rtapi_print_msg(RTAPI_MSG_INFO, "MOTION: cleanup_module() started.\n");
+    
+    //for test,
+    for(i = 0; i <= 50; i++) {
+      rtapi_print_msg(RTAPI_MSG_INFO, "buffer[%d] = %lf\n", i, *(Xbuffer+i));
+      //file_write(Openfile_dx, i, *XOutput, 8);
+    }
     
     //for test, close file
     ReadOffset_x = 0;
@@ -965,8 +978,6 @@ static int init_comm_buffers(void)
     //for test, create buffers to store motor positions
     Xbuffer = hal_malloc(6000 * sizeof(double));
     Ybuffer = hal_malloc(6000 * sizeof(double));
-    OutputCounter_x = 0;
-    OutputCounter_y = 0;
 
     emcmotStruct = 0;
     emcmotDebug = 0;
