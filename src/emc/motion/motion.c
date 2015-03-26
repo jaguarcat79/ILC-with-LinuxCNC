@@ -122,10 +122,14 @@ int poscounter;
 //long int total_time;
 int ccc = 0;
 int stop_count;
-double *Xbuffer;
-double *Ybuffer;
-int bufferCounter_x;
-int bufferCounter_y;
+double *DespBuffer_x;
+double *DespBuffer_y;
+double *ActupBuffer_x;
+double *ActupBuffer_y;
+int bufferCounter_dx;
+int bufferCounter_dy;
+int bufferCounter_ax;
+int bufferCounter_ay;
 
 /***********************************************************************
 *                  LOCAL VARIABLE DECLARATIONS                         *
@@ -368,8 +372,10 @@ int rtapi_app_main(void)
     PosCountFlag_end = 0;
     ReadOffset_x = 0;
     ReadOffset_y = 0;
-    bufferCounter_x = 0;
-    bufferCounter_y = 0;
+    bufferCounter_dx = 0;
+    bufferCounter_dy = 0;
+    bufferCounter_ax = 0;
+    bufferCounter_ay = 0;
     
     Openfile_dx = file_open("/mnt/ramdisk/desp_x_0325.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
     Openfile_dy = file_open("/mnt/ramdisk/desp_y_0325.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
@@ -392,18 +398,46 @@ void rtapi_app_exit(void)
 {
     int retval;
     //for test,
-    int i;
-    char XOutput[20];
+    int i,j;
+    char* Dbx;
+    char testbuffer[8];
+    double* xPtr, testPtr;
 
     rtapi_set_msg_handler(old_handler);
 
     rtapi_print_msg(RTAPI_MSG_INFO, "MOTION: cleanup_module() started.\n");
     
     //for test,
+    j = 0;
     for(i = 0; i <= 50; i++) {
-      rtapi_print_msg(RTAPI_MSG_INFO, "buffer[%d] = %lf\n", i, *(Xbuffer+i));
-      //file_write(Openfile_dx, i, *XOutput, 8);
+      xPtr = (DespBuffer_x + i);
+      Dbx = (char*) xPtr;
+      rtapi_print_msg(RTAPI_MSG_INFO, "buffer[%d] = %lf\n", i, *(DespBuffer_x+i));
+      file_write(Openfile_dx, j, Dbx, 1);
+      file_write(Openfile_dx, j+1, Dbx, 1);
+      file_write(Openfile_dx, j+2, Dbx, 1);
+      file_write(Openfile_dx, j+3, Dbx, 1);
+      file_write(Openfile_dx, j+4, Dbx, 1);
+      file_write(Openfile_dx, j+5, Dbx, 1);
+      file_write(Openfile_dx, j+6, Dbx, 1);
+      file_write(Openfile_dx, j+7, Dbx, 1);
+      j += 8;
     }
+    j = 0;
+    for(i = 0; i <= 50; i++) {
+      /*file_read(Openfile_dx, j, testbuffer[0], 1);
+      file_read(Openfile_dx, j+1, testbuffer[1], 1);
+      file_read(Openfile_dx, j+2, testbuffer[2], 1);
+      file_read(Openfile_dx, j+3, testbuffer[3], 1);
+      file_read(Openfile_dx, j+4, testbuffer[4], 1);
+      file_read(Openfile_dx, j+5, testbuffer[5], 1);
+      file_read(Openfile_dx, j+6, testbuffer[6], 1);
+      file_read(Openfile_dx, j+7, testbuffer[7], 1);*/
+      file_read(Openfile_dx, j, testbuffer, 8);
+      //testPtr = (double*) testbuffer;
+      rtapi_print_msg(RTAPI_MSG_INFO, "in file = %c\n", testbuffer[0]);
+      j += 8;
+    } 
     
     //for test, close file
     ReadOffset_x = 0;
@@ -976,8 +1010,10 @@ static int init_comm_buffers(void)
 	"MOTION: init_comm_buffers() starting...\n");
 	
     //for test, create buffers to store motor positions
-    Xbuffer = hal_malloc(6000 * sizeof(double));
-    Ybuffer = hal_malloc(6000 * sizeof(double));
+    DespBuffer_x = hal_malloc(6000 * sizeof(double));
+    DespBuffer_y = hal_malloc(6000 * sizeof(double));
+    ActupBuffer_x = hal_malloc(6000 * sizeof(double));
+    ActupBuffer_x = hal_malloc(6000 * sizeof(double));
 
     emcmotStruct = 0;
     emcmotDebug = 0;

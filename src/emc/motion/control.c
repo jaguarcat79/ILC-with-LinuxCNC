@@ -2081,13 +2081,13 @@ static void update_status(void)
 	joint_status->record_end = PosCountFlag_end;
 	if(PosCountFlag_begin == 1 && PosCountFlag_end == 0){
 	  if(joint_num == 0) {
-	    *(Xbuffer + bufferCounter_x) = joint->pos_cmd;
+	    *(DespBuffer_x + bufferCounter_dx) = joint->pos_cmd;
 	    //rtapi_print_msg(RTAPI_MSG_INFO, "Debug: %lf\n", *Xbuffer);
-	    bufferCounter_x++;
+	    bufferCounter_dx++;
 	    
 	  } else if(joint_num == 1) {
-	    *Ybuffer = joint->pos_cmd;
-	    Xbuffer++;
+	    *(DespBuffer_y + bufferCounter_dy) = joint->pos_cmd;
+	    bufferCounter_dy++;
 	    
 	  }
 	  

@@ -237,10 +237,14 @@ extern int PosCountFlag_end;
 extern int ccc;
 extern int poscounter;
 extern int stop_count;
-extern double *Xbuffer;
-extern double *Ybuffer;
-extern int bufferCounter_x;
-extern int bufferCounter_y;
+extern double *DespBuffer_x;
+extern double *DespBuffer_y;
+extern double *ActupBuffer_x;
+extern double *ActupBuffer_y;
+extern int bufferCounter_dx;
+extern int bufferCounter_dy;
+extern int bufferCounter_ax;
+extern int bufferCounter_ay;
 
 /***********************************************************************
 *                    PUBLIC FUNCTION PROTOTYPES                        *
