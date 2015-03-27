@@ -2082,11 +2082,12 @@ static void update_status(void)
 	if(PosCountFlag_begin == 1 && PosCountFlag_end == 0){
 	  if(joint_num == 0) {
 	    *(DespBuffer_x + bufferCounter_dx) = joint->pos_cmd;
-	    //rtapi_print_msg(RTAPI_MSG_INFO, "Debug: %lf\n", *Xbuffer);
+	    //rtapi_print_msg(RTAPI_MSG_INFO, "Debug: record:x =%lf\n", joint->pos_cmd);
 	    bufferCounter_dx++;
 	    
 	  } else if(joint_num == 1) {
 	    *(DespBuffer_y + bufferCounter_dy) = joint->pos_cmd;
+	    //rtapi_print_msg(RTAPI_MSG_INFO, "Debug: record:y =%lf\n", joint->pos_cmd);
 	    bufferCounter_dy++;
 	    
 	  }

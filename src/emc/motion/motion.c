@@ -398,9 +398,11 @@ void rtapi_app_exit(void)
 {
     int retval;
     //for test,
-    int i,j;
+    int i, j;
     char* Dbx;
+    char* Dby;
     double* xPtr;
+    double* yPtr;
 
     rtapi_set_msg_handler(old_handler);
 
@@ -408,20 +410,22 @@ void rtapi_app_exit(void)
     
     //for test,
     j = 0;
-    for(i = 0; i <= 50; i++) {
+    for(i = 0; i < poscounter; i++) {
       xPtr = (DespBuffer_x + i);
       Dbx = (char*) xPtr;
-      rtapi_print_msg(RTAPI_MSG_INFO, "buffer[%d] = %lf\n", i, *(DespBuffer_x+i));
-      file_write(Openfile_dx, j, Dbx, 1);
-      file_write(Openfile_dx, j+1, Dbx, 1);
-      file_write(Openfile_dx, j+2, Dbx, 1);
-      file_write(Openfile_dx, j+3, Dbx, 1);
-      file_write(Openfile_dx, j+4, Dbx, 1);
-      file_write(Openfile_dx, j+5, Dbx, 1);
-      file_write(Openfile_dx, j+6, Dbx, 1);
-      file_write(Openfile_dx, j+7, Dbx, 1);
+      //rtapi_print_msg(RTAPI_MSG_INFO, "bufferX[%d] = %lf\n", i, *(DespBuffer_x+i));
+      file_write(Openfile_dx, j, Dbx, 8);
       j += 8;
-    } 
+    }
+    j = 0;
+    for(i = 0; i < poscounter; i++) {
+      yPtr = (DespBuffer_y + i);
+      Dby = (char*) yPtr;
+      //rtapi_print_msg(RTAPI_MSG_INFO, "bufferY[%d] = %lf\n", i, *(DespBuffer_y+i));
+      //rtapi_print_msg(RTAPI_MSG_INFO, "bufferY[%d] = %lf\n", i, *yPtr);
+      file_write(Openfile_dy, j, Dby, 8);
+      j += 8;
+    }
     
     //for test, close file
     ReadOffset_x = 0;
