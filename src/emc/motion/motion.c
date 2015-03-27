@@ -381,8 +381,10 @@ int rtapi_app_main(void)
     Openfile_dy = file_open("/mnt/ramdisk/desp_y_0325.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
     //Openfile_dx = file_open("/mnt/ramdisk/desp_x.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
     //Openfile_dy = file_open("/mnt/ramdisk/desp_y.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
-    Openfile_ax = file_open("/mnt/ramdisk/actup_y.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
-    Openfile_ay = file_open("/mnt/ramdisk/actup_y.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
+    Openfile_ax = file_open("/mnt/ramdisk/actup_x_0325.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
+    Openfile_ay = file_open("/mnt/ramdisk/actup_y_0325.txt", O_RDWR | O_CREAT | O_APPEND, 0666);    
+    //Openfile_ax = file_open("/mnt/ramdisk/actup_y.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
+    //Openfile_ay = file_open("/mnt/ramdisk/actup_y.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
     Openfile_testptr = file_open("/mnt/ramdisk/testptr.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
     
     rtapi_print_msg(RTAPI_MSG_INFO, "MOTION: init_module() complete\n");
@@ -401,8 +403,12 @@ void rtapi_app_exit(void)
     int i, j;
     char* Dbx;
     char* Dby;
+    char* Apx;
+    char* Apy;
     double* xPtr;
     double* yPtr;
+    double* xPtra;
+    double* yPtra;
 
     rtapi_set_msg_handler(old_handler);
 
@@ -417,6 +423,7 @@ void rtapi_app_exit(void)
       file_write(Openfile_dx, j, Dbx, 8);
       j += 8;
     }
+    
     j = 0;
     for(i = 0; i < poscounter; i++) {
       yPtr = (DespBuffer_y + i);
@@ -426,6 +433,24 @@ void rtapi_app_exit(void)
       file_write(Openfile_dy, j, Dby, 8);
       j += 8;
     }
+    
+    j = 0;
+    for(i = 0; i < poscounter; i++) {
+      xPtra = (ActupBuffer_x + i);
+      Apx = (char*) xPtra;
+      //rtapi_print_msg(RTAPI_MSG_INFO, "bufferX[%d] = %lf\n", i, *(DespBuffer_x+i));
+      file_write(Openfile_ax, j, Apx, 8);
+      j += 8;
+    }
+    
+    /*j = 0;
+    for(i = 0; i < poscounter; i++) {
+      yPtra = (ActupBuffer_y + i);
+      Apy = (char*) yPtra;
+      //rtapi_print_msg(RTAPI_MSG_INFO, "bufferX[%d] = %lf\n", i, *(DespBuffer_x+i));
+      file_write(Openfile_ay, j, Apy, 8);
+      j += 8;
+    } */
     
     //for test, close file
     ReadOffset_x = 0;
