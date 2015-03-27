@@ -400,8 +400,7 @@ void rtapi_app_exit(void)
     //for test,
     int i,j;
     char* Dbx;
-    char testbuffer[8];
-    double* xPtr, testPtr;
+    double* xPtr;
 
     rtapi_set_msg_handler(old_handler);
 
@@ -421,21 +420,6 @@ void rtapi_app_exit(void)
       file_write(Openfile_dx, j+5, Dbx, 1);
       file_write(Openfile_dx, j+6, Dbx, 1);
       file_write(Openfile_dx, j+7, Dbx, 1);
-      j += 8;
-    }
-    j = 0;
-    for(i = 0; i <= 50; i++) {
-      /*file_read(Openfile_dx, j, testbuffer[0], 1);
-      file_read(Openfile_dx, j+1, testbuffer[1], 1);
-      file_read(Openfile_dx, j+2, testbuffer[2], 1);
-      file_read(Openfile_dx, j+3, testbuffer[3], 1);
-      file_read(Openfile_dx, j+4, testbuffer[4], 1);
-      file_read(Openfile_dx, j+5, testbuffer[5], 1);
-      file_read(Openfile_dx, j+6, testbuffer[6], 1);
-      file_read(Openfile_dx, j+7, testbuffer[7], 1);*/
-      file_read(Openfile_dx, j, testbuffer, 8);
-      //testPtr = (double*) testbuffer;
-      rtapi_print_msg(RTAPI_MSG_INFO, "in file = %c\n", testbuffer[0]);
       j += 8;
     } 
     
