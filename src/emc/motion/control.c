@@ -2003,7 +2003,8 @@ static void output_to_hal(void)
 	*(joint_data->joint_pos_cmd) = joint->pos_cmd;	
 	*(joint_data->joint_pos_fb) = joint->pos_fb;
 	//for test, joint->pos_cmd would not be zero when emc_set_motor_offset command starts
-	//rtapi_print_msg(RTAPI_MSG_DBG , "ToHal:joint->pos_cmd = %f \n", joint->pos_cmd); 
+	//rtapi_print_msg(RTAPI_MSG_DBG , "ToHal:joint->pos_cmd = %f \n", joint->pos_cmd);
+	  
 	*(joint_data->amp_enable) = GET_JOINT_ENABLE_FLAG(joint);
 	*(joint_data->index_enable) = joint->index_enable;
 	*(joint_data->homing) = GET_JOINT_HOMING_FLAG(joint);
@@ -2089,7 +2090,7 @@ static void update_status(void)
 	    
 	  } else if(joint_num == 1) {
 	    *(DespBuffer_y + bufferCounter_dy) = joint->pos_cmd;
-	    //*(ActupBuffer_y + bufferCounter_ay) = joint->pos_fb;
+	    *(ActupBuffer_y + bufferCounter_ay) = joint->pos_fb;
 	    //rtapi_print_msg(RTAPI_MSG_INFO, "Debug: record:y =%lf\n", joint->pos_cmd);
 	    bufferCounter_dy++;
 	    bufferCounter_ay++;

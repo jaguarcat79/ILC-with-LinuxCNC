@@ -112,7 +112,6 @@ struct file* Openfile_dy = 0;
 struct file* Openfile_ax = 0;
 struct file* Openfile_ay = 0;
 struct file* Openfile_postotal = 0;
-struct file* Openfile_testptr = 0;
 int ReadOffset_x;
 int ReadOffset_y;
 int PosCountFlag_begin;
@@ -385,7 +384,6 @@ int rtapi_app_main(void)
     Openfile_ay = file_open("/mnt/ramdisk/actup_y_0325.txt", O_RDWR | O_CREAT | O_APPEND, 0666);    
     //Openfile_ax = file_open("/mnt/ramdisk/actup_y.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
     //Openfile_ay = file_open("/mnt/ramdisk/actup_y.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
-    Openfile_testptr = file_open("/mnt/ramdisk/testptr.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
     
     rtapi_print_msg(RTAPI_MSG_INFO, "MOTION: init_module() complete\n");
 
@@ -443,14 +441,14 @@ void rtapi_app_exit(void)
       j += 8;
     }
     
-    /*j = 0;
+    j = 0;
     for(i = 0; i < poscounter; i++) {
       yPtra = (ActupBuffer_y + i);
       Apy = (char*) yPtra;
       //rtapi_print_msg(RTAPI_MSG_INFO, "bufferX[%d] = %lf\n", i, *(DespBuffer_x+i));
       file_write(Openfile_ay, j, Apy, 8);
       j += 8;
-    } */
+    }
     
     //for test, close file
     ReadOffset_x = 0;
@@ -461,7 +459,6 @@ void rtapi_app_exit(void)
     file_close(Openfile_dy);
     file_close(Openfile_ax);
     file_close(Openfile_ay);
-    file_close(Openfile_testptr);
 
     retval = hal_stop_threads();
     if (retval < 0) {
@@ -1026,7 +1023,7 @@ static int init_comm_buffers(void)
     DespBuffer_x = hal_malloc(6000 * sizeof(double));
     DespBuffer_y = hal_malloc(6000 * sizeof(double));
     ActupBuffer_x = hal_malloc(6000 * sizeof(double));
-    ActupBuffer_x = hal_malloc(6000 * sizeof(double));
+    ActupBuffer_y = hal_malloc(6000 * sizeof(double));
 
     emcmotStruct = 0;
     emcmotDebug = 0;

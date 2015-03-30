@@ -229,7 +229,6 @@ extern struct file* Openfile_dy;
 extern struct file* Openfile_ax;
 extern struct file* Openfile_ay;
 extern struct file* Openfile_postotal;
-extern struct file* Openfile_testptr;
 extern int ReadOffset_x;
 extern int ReadOffset_y;
 extern int PosCountFlag_begin;
