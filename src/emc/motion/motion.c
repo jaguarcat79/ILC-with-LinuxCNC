@@ -25,6 +25,7 @@
 #include <linux/fs.h>
 #include <asm/segment.h>
 #include <asm/uaccess.h>
+#include <linux/vmalloc.h> /* for vmalloc */
 
 // Mark strings for translation, but defer translation to userspace
 #define _(s) (s)
@@ -376,12 +377,12 @@ int rtapi_app_main(void)
     bufferCounter_ax = 0;
     bufferCounter_ay = 0;
     
-    Openfile_dx = file_open("/mnt/ramdisk/desp_x_0325.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
-    Openfile_dy = file_open("/mnt/ramdisk/desp_y_0325.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
+    Openfile_dx = file_open("/mnt/ramdisk/desp_x_0409.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
+    Openfile_dy = file_open("/mnt/ramdisk/desp_y_0409.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
     //Openfile_dx = file_open("/mnt/ramdisk/desp_x.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
     //Openfile_dy = file_open("/mnt/ramdisk/desp_y.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
-    Openfile_ax = file_open("/mnt/ramdisk/actup_x_0325.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
-    Openfile_ay = file_open("/mnt/ramdisk/actup_y_0325.txt", O_RDWR | O_CREAT | O_APPEND, 0666);    
+    Openfile_ax = file_open("/mnt/ramdisk/actup_x_0409.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
+    Openfile_ay = file_open("/mnt/ramdisk/actup_y_0409.txt", O_RDWR | O_CREAT | O_APPEND, 0666);    
     //Openfile_ax = file_open("/mnt/ramdisk/actup_y.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
     //Openfile_ay = file_open("/mnt/ramdisk/actup_y.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
     
@@ -453,8 +454,11 @@ void rtapi_app_exit(void)
     //for test, close file
     ReadOffset_x = 0;
     ReadOffset_y = 0;
-    //free(Xbuffer);
-    //free(Ybuffer);
+    
+    vfree(DespBuffer_x);
+    vfree(DespBuffer_y);
+    vfree(ActupBuffer_x);
+    vfree(ActupBuffer_y);
     file_close(Openfile_dx);
     file_close(Openfile_dy);
     file_close(Openfile_ax);
@@ -1020,10 +1024,14 @@ static int init_comm_buffers(void)
 	"MOTION: init_comm_buffers() starting...\n");
 	
     //for test, create buffers to store motor positions
-    DespBuffer_x = hal_malloc(6000 * sizeof(double));
-    DespBuffer_y = hal_malloc(6000 * sizeof(double));
-    ActupBuffer_x = hal_malloc(6000 * sizeof(double));
-    ActupBuffer_y = hal_malloc(6000 * sizeof(double));
+    //DespBuffer_x = hal_malloc(6000 * sizeof(double));
+    //DespBuffer_y = hal_malloc(6000 * sizeof(double));
+    //ActupBuffer_x = hal_malloc(6000 * sizeof(double));
+    //ActupBuffer_y = hal_malloc(6000 * sizeof(double));
+    DespBuffer_x = vmalloc(8000 * sizeof(double));
+    DespBuffer_y = vmalloc(8000 * sizeof(double));
+    ActupBuffer_x = vmalloc(8000 * sizeof(double));
+    ActupBuffer_y = vmalloc(8000 * sizeof(double));
 
     emcmotStruct = 0;
     emcmotDebug = 0;

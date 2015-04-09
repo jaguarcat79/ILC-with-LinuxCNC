@@ -2051,8 +2051,6 @@ static void update_status(void)
     int testvaluei;
     float* testfptr;
     char* testcptr;
-    struct file* ptr;
-    ptr = Openfile_testptr;
     testvalue = 22.2;
     
     /* copy status info from private joint structure to status
