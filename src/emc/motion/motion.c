@@ -21,11 +21,12 @@
 #include "mot_priv.h"
 #include "rtapi_math.h"
 
-//for test, open file in kernel space
+//for test, call libraries in kernel space
 #include <linux/fs.h>
 #include <asm/segment.h>
 #include <asm/uaccess.h>
 #include <linux/vmalloc.h> /* for vmalloc */
+#include <linux/proc_fs.h> /* for read/write method in /proc */
 
 // Mark strings for translation, but defer translation to userspace
 #define _(s) (s)
@@ -126,10 +127,14 @@ double *DespBuffer_x;
 double *DespBuffer_y;
 double *ActupBuffer_x;
 double *ActupBuffer_y;
+char *procbuffer;
 int bufferCounter_dx;
 int bufferCounter_dy;
 int bufferCounter_ax;
 int bufferCounter_ay;
+struct proc_dir_entry *desp_x;
+char *procfs_buffer; /* /proc method */
+unsigned long procfs_buffer_size = 0; /* /proc method */
 
 /***********************************************************************
 *                  LOCAL VARIABLE DECLARATIONS                         *
@@ -275,6 +280,17 @@ float StringToFloat(const char* string){
   return rez * fact;
 }
 
+int procfile_write(struct file *file, const char *buffer, unsigned long count, void *data) {
+  
+  procfs_buffer_size = count;
+  
+  if(copy_from_user(procfs_buffer, buffer, procfs_buffer_size)) {
+    return -EFAULT;
+  }
+  
+  return procfs_buffer_size;  
+}
+
 void emcmot_config_change(void)
 {
     if (emcmotConfig->head == emcmotConfig->tail) {
@@ -377,14 +393,15 @@ int rtapi_app_main(void)
     bufferCounter_ax = 0;
     bufferCounter_ay = 0;
     
-    Openfile_dx = file_open("/mnt/ramdisk/desp_x_0409.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
-    Openfile_dy = file_open("/mnt/ramdisk/desp_y_0409.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
+    Openfile_dx = file_open("/mnt/ramdisk/desp_x_0408.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
+    Openfile_dy = file_open("/mnt/ramdisk/desp_y_0408.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
     //Openfile_dx = file_open("/mnt/ramdisk/desp_x.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
     //Openfile_dy = file_open("/mnt/ramdisk/desp_y.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
-    Openfile_ax = file_open("/mnt/ramdisk/actup_x_0409.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
-    Openfile_ay = file_open("/mnt/ramdisk/actup_y_0409.txt", O_RDWR | O_CREAT | O_APPEND, 0666);    
+    Openfile_ax = file_open("/mnt/ramdisk/actup_x_0408.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
+    Openfile_ay = file_open("/mnt/ramdisk/actup_y_0408.txt", O_RDWR | O_CREAT | O_APPEND, 0666);    
     //Openfile_ax = file_open("/mnt/ramdisk/actup_y.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
     //Openfile_ay = file_open("/mnt/ramdisk/actup_y.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
+    desp_x = create_proc_entry("despx", 0644, NULL);
     
     rtapi_print_msg(RTAPI_MSG_INFO, "MOTION: init_module() complete\n");
 
@@ -419,7 +436,7 @@ void rtapi_app_exit(void)
       xPtr = (DespBuffer_x + i);
       Dbx = (char*) xPtr;
       //rtapi_print_msg(RTAPI_MSG_INFO, "bufferX[%d] = %lf\n", i, *(DespBuffer_x+i));
-      file_write(Openfile_dx, j, Dbx, 8);
+      //file_write(Openfile_dx, j, Dbx, 8);
       j += 8;
     }
     
@@ -429,7 +446,7 @@ void rtapi_app_exit(void)
       Dby = (char*) yPtr;
       //rtapi_print_msg(RTAPI_MSG_INFO, "bufferY[%d] = %lf\n", i, *(DespBuffer_y+i));
       //rtapi_print_msg(RTAPI_MSG_INFO, "bufferY[%d] = %lf\n", i, *yPtr);
-      file_write(Openfile_dy, j, Dby, 8);
+      //file_write(Openfile_dy, j, Dby, 8);
       j += 8;
     }
     
@@ -438,7 +455,7 @@ void rtapi_app_exit(void)
       xPtra = (ActupBuffer_x + i);
       Apx = (char*) xPtra;
       //rtapi_print_msg(RTAPI_MSG_INFO, "bufferX[%d] = %lf\n", i, *(DespBuffer_x+i));
-      file_write(Openfile_ax, j, Apx, 8);
+      //file_write(Openfile_ax, j, Apx, 8);
       j += 8;
     }
     
@@ -447,7 +464,7 @@ void rtapi_app_exit(void)
       yPtra = (ActupBuffer_y + i);
       Apy = (char*) yPtra;
       //rtapi_print_msg(RTAPI_MSG_INFO, "bufferX[%d] = %lf\n", i, *(DespBuffer_x+i));
-      file_write(Openfile_ay, j, Apy, 8);
+      //file_write(Openfile_ay, j, Apy, 8);
       j += 8;
     }
     
@@ -459,10 +476,12 @@ void rtapi_app_exit(void)
     vfree(DespBuffer_y);
     vfree(ActupBuffer_x);
     vfree(ActupBuffer_y);
+    vfree(procbuffer);
     file_close(Openfile_dx);
     file_close(Openfile_dy);
     file_close(Openfile_ax);
     file_close(Openfile_ay);
+    //remove_proc_entry("despx", );
 
     retval = hal_stop_threads();
     if (retval < 0) {
@@ -1028,10 +1047,11 @@ static int init_comm_buffers(void)
     //DespBuffer_y = hal_malloc(6000 * sizeof(double));
     //ActupBuffer_x = hal_malloc(6000 * sizeof(double));
     //ActupBuffer_y = hal_malloc(6000 * sizeof(double));
-    DespBuffer_x = vmalloc(8000 * sizeof(double));
-    DespBuffer_y = vmalloc(8000 * sizeof(double));
-    ActupBuffer_x = vmalloc(8000 * sizeof(double));
-    ActupBuffer_y = vmalloc(8000 * sizeof(double));
+    DespBuffer_x = vmalloc(250000 * sizeof(double));
+    DespBuffer_y = vmalloc(250000 * sizeof(double));
+    ActupBuffer_x = vmalloc(250000 * sizeof(double));
+    ActupBuffer_y = vmalloc(250000 * sizeof(double));
+    procbuffer = vmalloc(5000 * sizeof(double));
 
     emcmotStruct = 0;
     emcmotDebug = 0;

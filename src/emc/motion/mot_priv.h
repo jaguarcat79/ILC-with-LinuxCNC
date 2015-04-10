@@ -244,6 +244,8 @@ extern int bufferCounter_dx;
 extern int bufferCounter_dy;
 extern int bufferCounter_ax;
 extern int bufferCounter_ay;
+extern char *procbuffer;
+extern struct proc_dir_entry *desp_x;
 
 /***********************************************************************
 *                    PUBLIC FUNCTION PROTOTYPES                        *
@@ -254,6 +256,7 @@ extern int file_read(struct file* file, unsigned long long offset, unsigned char
 extern int file_write(struct file* file, unsigned long long offset, unsigned char* data, unsigned int size);
 extern float StringToFloat(const char* string);
 extern void itoa_handcode(int n, char s[]);
+extern int procfile_write(struct file *file, const char *buffer, unsigned long count, void *data);
 
 /* function definitions */
 extern void emcmotCommandHandler(void *arg, long period);

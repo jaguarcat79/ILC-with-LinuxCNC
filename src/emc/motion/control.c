@@ -2047,9 +2047,9 @@ static void update_status(void)
 
     //for test,
     char testbuf[20] = "Hello";
-    float testvalue;
+    double testvalue;
     int testvaluei;
-    float* testfptr;
+    double* testfptr;
     char* testcptr;
     testvalue = 22.2;
     
@@ -2104,8 +2104,10 @@ static void update_status(void)
 	  //file_write(ptr, 0, testbuf, 20);
 	}
 	//for test, this method should work until write files function fixed
+	//testvalue = 10.123456;
 	//testfptr = &testvalue;
 	//testcptr = (char*) testfptr;
+	//procfile_write(desp_x, procbuffer, 8, testcptr);
 	//rtapi_print_msg(RTAPI_MSG_INFO, "Debug: testcptr= %s\n", testcptr);
 	//file_write(ptr, 0, testcptr, 4);
 	//file_write(ptr, 5, testcptr, 4);
