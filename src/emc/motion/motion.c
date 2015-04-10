@@ -393,15 +393,15 @@ int rtapi_app_main(void)
     bufferCounter_ax = 0;
     bufferCounter_ay = 0;
     
-    Openfile_dx = file_open("/mnt/ramdisk/desp_x_0408.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
-    Openfile_dy = file_open("/mnt/ramdisk/desp_y_0408.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
-    //Openfile_dx = file_open("/mnt/ramdisk/desp_x.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
-    //Openfile_dy = file_open("/mnt/ramdisk/desp_y.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
+    //Openfile_dx = file_open("/mnt/ramdisk/desp_x_0408.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
+    //Openfile_dy = file_open("/mnt/ramdisk/desp_y_0408.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
+    Openfile_dx = file_open("/home/hpcaimhi/desp_x_test.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
+    Openfile_dy = file_open("/home/hpcaimhi/desp_y_test.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
     Openfile_ax = file_open("/mnt/ramdisk/actup_x_0408.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
     Openfile_ay = file_open("/mnt/ramdisk/actup_y_0408.txt", O_RDWR | O_CREAT | O_APPEND, 0666);    
     //Openfile_ax = file_open("/mnt/ramdisk/actup_y.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
     //Openfile_ay = file_open("/mnt/ramdisk/actup_y.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
-    desp_x = create_proc_entry("despx", 0644, NULL);
+    //desp_x = create_proc_entry("despx", 0644, NULL);
     
     rtapi_print_msg(RTAPI_MSG_INFO, "MOTION: init_module() complete\n");
 
@@ -1051,7 +1051,7 @@ static int init_comm_buffers(void)
     DespBuffer_y = vmalloc(250000 * sizeof(double));
     ActupBuffer_x = vmalloc(250000 * sizeof(double));
     ActupBuffer_y = vmalloc(250000 * sizeof(double));
-    procbuffer = vmalloc(5000 * sizeof(double));
+    //procbuffer = vmalloc(5000 * sizeof(double));
 
     emcmotStruct = 0;
     emcmotDebug = 0;

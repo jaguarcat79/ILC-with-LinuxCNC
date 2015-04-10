@@ -1072,7 +1072,11 @@ static void get_pos_cmds(long period)
     // by Yu-Tsai, Yeh
     char ILCposition_cx[72];
     char ILCposition_cy[72];
-    float ILCposition_x = 0.0, ILCposition_y = 0.0;
+    //char *ILCposition_cx;
+    //char *ILCposition_cy;
+    double ILCposition_x = 0.0, ILCposition_y = 0.0;
+    double *ILCposition_xptr; 
+    double *ILCposition_yptr;
     int char_check,clean;
     struct file* ILC_x;
     struct file* ILC_y;
@@ -1364,6 +1368,23 @@ static void get_pos_cmds(long period)
 	    rtapi_print_msg(RTAPI_MSG_INFO, "Debug: read file in controller y:%c\n", ILCposition_cy[8]);
 	  }
 	} */
+	
+	if(emcmotCommand->command == EMCMOT_SET_CIRCLE){
+	   if(file_read(ILC_x, ReadOffset_x, ILCposition_cx, 8) < 0 || file_read(ILC_y, ReadOffset_y, ILCposition_cy, 8) < 0){
+	     break;	      
+	  }
+	  
+	  ILCposition_xptr = (double*)ILCposition_cx;
+	  ILCposition_yptr = (double*)ILCposition_cy;
+	  ILCposition_x = *(ILCposition_xptr);
+	  ILCposition_y = *(ILCposition_yptr);
+	  
+	  rtapi_print_msg(RTAPI_MSG_INFO, "Debug: read file in controller x:%f\n", ILCposition_x);
+	  rtapi_print_msg(RTAPI_MSG_INFO, "Debug: read file in controller y:%f\n", ILCposition_y);
+	  
+	  ReadOffset_x += 8;
+	  ReadOffset_y += 8;
+	}
 	
 	if(PosCountFlag_begin == 1 && stop_count == 0){
 	  poscounter += 1;
