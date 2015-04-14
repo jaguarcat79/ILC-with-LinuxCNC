@@ -1077,7 +1077,7 @@ static void get_pos_cmds(long period)
     double ILCposition_x = 0.0, ILCposition_y = 0.0;
     double *ILCposition_xptr; 
     double *ILCposition_yptr;
-    int char_check,clean;
+    int char_check;
     struct file* ILC_x;
     struct file* ILC_y;
     ILC_x = Openfile_dx;
@@ -1319,9 +1319,6 @@ static void get_pos_cmds(long period)
 		ReadOffset_x += char_check +1;
 	      } else{
 		ILCposition_cx[0] = '\0';
-		//for(clean = 0; clean <=char_check +1; clean++){
-		  //ILCposition_cx[clean] = '';
-		//} 
 		file_read(ILC_x, ReadOffset_x, ILCposition_cx, char_check+2);
 		continue;
 	      }
@@ -1334,9 +1331,6 @@ static void get_pos_cmds(long period)
 		ReadOffset_y += char_check +1;
 	      } else{
 		ILCposition_cy[0] = '\0';
-		//for(clean = 0; clean <=char_check +1; clean++){
-		  //ILCposition_cy[clean] = '';
-		//} 
 		file_read(ILC_y, ReadOffset_y, ILCposition_cy, char_check+2);
 		continue;
 	      }
@@ -1369,7 +1363,7 @@ static void get_pos_cmds(long period)
 	  }
 	} */
 	
-	if(emcmotCommand->command == EMCMOT_SET_CIRCLE){
+	/*if(emcmotCommand->command == EMCMOT_SET_CIRCLE){
 	   if(file_read(ILC_x, ReadOffset_x, ILCposition_cx, 8) < 0 || file_read(ILC_y, ReadOffset_y, ILCposition_cy, 8) < 0){
 	     break;	      
 	  }
@@ -1384,7 +1378,7 @@ static void get_pos_cmds(long period)
 	  
 	  ReadOffset_x += 8;
 	  ReadOffset_y += 8;
-	}
+	} */
 	
 	if(PosCountFlag_begin == 1 && stop_count == 0){
 	  poscounter += 1;

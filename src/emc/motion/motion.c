@@ -1047,10 +1047,10 @@ static int init_comm_buffers(void)
     //DespBuffer_y = hal_malloc(6000 * sizeof(double));
     //ActupBuffer_x = hal_malloc(6000 * sizeof(double));
     //ActupBuffer_y = hal_malloc(6000 * sizeof(double));
-    DespBuffer_x = vmalloc(250000 * sizeof(double));
-    DespBuffer_y = vmalloc(250000 * sizeof(double));
-    ActupBuffer_x = vmalloc(250000 * sizeof(double));
-    ActupBuffer_y = vmalloc(250000 * sizeof(double));
+    DespBuffer_x = vmalloc(6000 * sizeof(double));
+    DespBuffer_y = vmalloc(6000 * sizeof(double));
+    ActupBuffer_x = vmalloc(6000 * sizeof(double));
+    ActupBuffer_y = vmalloc(6000 * sizeof(double));
     //procbuffer = vmalloc(5000 * sizeof(double));
 
     emcmotStruct = 0;

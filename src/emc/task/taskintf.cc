@@ -574,17 +574,18 @@ int emcAxisUpdate(EMC_AXIS_STAT stat[], int numAxes)
     char fname3[] = "actup_x_0325.txt";
     char fname4[] = "actup_y_0325.txt";
     char fname5[] = "totaltime.txt";
-    int handle_dx = open(fname1, O_WRONLY | O_CREAT | O_APPEND, 0666);
-    int handle_dy = open(fname2, O_WRONLY | O_CREAT | O_APPEND, 0666);
-    int handle_ax = open(fname3, O_WRONLY | O_CREAT | O_APPEND, 0666);
-    int handle_ay = open(fname4, O_WRONLY | O_CREAT | O_APPEND, 0666);
-    int handle_totalt = open(fname5, O_WRONLY | O_CREAT | O_APPEND, 0666);
     char buf_dx[20] = "";
     char buf_dy[20] = "";
     char buf_ax[20] = "";
     char buf_ay[20] = "";
     char buf_totalt[40] = "";
     float totalt = 0.0;
+    
+    //int handle_dx = open(fname1, O_WRONLY | O_CREAT | O_APPEND, 0666);
+    //int handle_dy = open(fname2, O_WRONLY | O_CREAT | O_APPEND, 0666);
+    //int handle_ax = open(fname3, O_WRONLY | O_CREAT | O_APPEND, 0666);
+    //int handle_ay = open(fname4, O_WRONLY | O_CREAT | O_APPEND, 0666);
+    int handle_totalt = open(fname5, O_WRONLY | O_CREAT, 0666);
     
     for (axis = 0; axis < numAxes; axis++) {
 	/* point to joint data */
@@ -633,6 +634,7 @@ int emcAxisUpdate(EMC_AXIS_STAT stat[], int numAxes)
 	}
 	if(joint->record_end == 1 && saveFlag == 0) {
 	  totalt = (float)joint->poscounter / 1000;
+	  printf("total time = %f\n", totalt);
 	  sprintf(buf_totalt, "%f", totalt);
 	  write(handle_totalt, buf_totalt, strlen(buf_totalt));
 	  saveFlag = 1;
@@ -685,10 +687,10 @@ int emcAxisUpdate(EMC_AXIS_STAT stat[], int numAxes)
 	}
     }
     ///for test, close files
-    close(handle_dx);
-    close(handle_dy);
-    close(handle_ax);
-    close(handle_ay);
+    //close(handle_dx);
+    //close(handle_dy);
+    //close(handle_ax);
+    //close(handle_ay);
     close(handle_totalt);
     
     return 0;
@@ -1116,14 +1118,15 @@ int emcTrajCircularMove(EmcPose end, PM_CARTESIAN center,
     //for test, open txt files
     char afILC_name1[] = "/home/hpcaimhi/sim_x.txt";
     char afILC_name2[] = "/home/hpcaimhi/sim_y.txt";
-    int handle_afx = open(afILC_name1, O_RDONLY, 0666);
-    int handle_afy = open(afILC_name2, O_RDONLY, 0666);
+    //int handle_afx = open(afILC_name1, O_RDONLY, 0666);
+    //int handle_afy = open(afILC_name2, O_RDONLY, 0666);
     int i, j;
     char buf_afx[72] = "";
     char buf_afy[72] = "";
     //double afxp, afyp;
     
     //for test, read positions here
+    /*
     //while(i = read(handle_afx, buf_afx, 9) > 0){
       i = read(handle_afx, buf_afx, 9);
       double afxp = strtod(buf_afx, NULL); 
@@ -1134,10 +1137,11 @@ int emcTrajCircularMove(EmcPose end, PM_CARTESIAN center,
       j = read(handle_afy, buf_afy, 9);
       double afyp = strtod(buf_afy, NULL); 
       emcmotCommand.cmdILCPos.tran.y = afyp / 25.4;
-    //}      
+    //} 
+    */ 
     //for test, close files
-    close(handle_afx);
-    close(handle_afy);
+    //close(handle_afx);
+    //close(handle_afy);
 
     return usrmotWriteEmcmotCommand(&emcmotCommand);
 }
