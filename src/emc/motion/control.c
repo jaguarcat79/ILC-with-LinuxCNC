@@ -2112,7 +2112,7 @@ static void update_status(void)
 	  
 	} else if (PosCountFlag_begin == 1 && PosCountFlag_end == 1) {
 	  //joint_status->record_end = PosCountFlag_end;
-	  joint_status->poscounter = poscounter;
+	  joint_status->poscounter = poscounter-1;
 	  stop_count += 1;
 	  //snprintf(testbuf, 20, "%d", testvaluei);
 	  //rtapi_print_msg(RTAPI_MSG_INFO, "Debug: %s\n",testbuf);

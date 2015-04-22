@@ -393,14 +393,14 @@ int rtapi_app_main(void)
     bufferCounter_ax = 0;
     bufferCounter_ay = 0;
     
-    //Openfile_dx = file_open("/mnt/ramdisk/desp_x_0408.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
-    //Openfile_dy = file_open("/mnt/ramdisk/desp_y_0408.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
-    Openfile_dx = file_open("/home/hpcaimhi/desp_x_test.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
-    Openfile_dy = file_open("/home/hpcaimhi/desp_y_test.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
-    Openfile_ax = file_open("/mnt/ramdisk/actup_x_0408.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
-    Openfile_ay = file_open("/mnt/ramdisk/actup_y_0408.txt", O_RDWR | O_CREAT | O_APPEND, 0666);    
-    //Openfile_ax = file_open("/mnt/ramdisk/actup_y.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
-    //Openfile_ay = file_open("/mnt/ramdisk/actup_y.txt", O_RDWR | O_CREAT | O_APPEND, 0666);
+    //Openfile_dx = file_open("/mnt/ramdisk/desp_x_0408.txt", O_RDWR | O_CREAT, 0666);
+    //Openfile_dy = file_open("/mnt/ramdisk/desp_y_0408.txt", O_RDWR | O_CREAT, 0666);
+    Openfile_dx = file_open("/home/hpcaimhi/desp_x_test.txt", O_RDWR | O_CREAT, 0666);
+    Openfile_dy = file_open("/home/hpcaimhi/desp_y_test.txt", O_RDWR | O_CREAT, 0666);
+    Openfile_ax = file_open("/mnt/ramdisk/actup_x_0408.txt", O_RDWR | O_CREAT, 0666);
+    Openfile_ay = file_open("/mnt/ramdisk/actup_y_0408.txt", O_RDWR | O_CREAT, 0666);    
+    //Openfile_ax = file_open("/mnt/ramdisk/actup_y.txt", O_RDWR | O_CREAT, 0666);
+    //Openfile_ay = file_open("/mnt/ramdisk/actup_y.txt", O_RDWR | O_CREAT, 0666);
     //desp_x = create_proc_entry("despx", 0644, NULL);
     
     rtapi_print_msg(RTAPI_MSG_INFO, "MOTION: init_module() complete\n");
@@ -432,7 +432,7 @@ void rtapi_app_exit(void)
     
     //for test,
     j = 0;
-    for(i = 0; i < poscounter; i++) {
+    for(i = 0; i < poscounter-1; i++) {
       xPtr = (DespBuffer_x + i);
       Dbx = (char*) xPtr;
       //rtapi_print_msg(RTAPI_MSG_INFO, "bufferX[%d] = %lf\n", i, *(DespBuffer_x+i));
@@ -441,7 +441,7 @@ void rtapi_app_exit(void)
     }
     
     j = 0;
-    for(i = 0; i < poscounter; i++) {
+    for(i = 0; i < poscounter-1; i++) {
       yPtr = (DespBuffer_y + i);
       Dby = (char*) yPtr;
       //rtapi_print_msg(RTAPI_MSG_INFO, "bufferY[%d] = %lf\n", i, *(DespBuffer_y+i));
@@ -451,7 +451,7 @@ void rtapi_app_exit(void)
     }
     
     j = 0;
-    for(i = 0; i < poscounter; i++) {
+    for(i = 0; i < poscounter-1; i++) {
       xPtra = (ActupBuffer_x + i);
       Apx = (char*) xPtra;
       //rtapi_print_msg(RTAPI_MSG_INFO, "bufferX[%d] = %lf\n", i, *(DespBuffer_x+i));
@@ -460,7 +460,7 @@ void rtapi_app_exit(void)
     }
     
     j = 0;
-    for(i = 0; i < poscounter; i++) {
+    for(i = 0; i < poscounter-1; i++) {
       yPtra = (ActupBuffer_y + i);
       Apy = (char*) yPtra;
       //rtapi_print_msg(RTAPI_MSG_INFO, "bufferX[%d] = %lf\n", i, *(DespBuffer_x+i));
