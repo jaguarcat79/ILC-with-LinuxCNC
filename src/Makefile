@@ -339,7 +339,11 @@ HEADERS := \
     rtapi/rtapi_common.h \
     rtapi/rtapi_ctype.h \
     rtapi/rtapi_errno.h \
-    rtapi/rtapi_string.h
+    rtapi/rtapi_string.h \
+    hal/hal_pci1723.h \
+    hal/hal_pci1751.h \
+    hal/hal_pci1753.h \
+    hal/hal_pci1784.h
 
 # Make each include file a target
 TARGETS += $(patsubst %,../include/%,$(foreach h,$(HEADERS),$(notdir $h)))
@@ -702,6 +706,18 @@ sampler-objs := hal/components/sampler.o $(MATHSTUB)
 
 # Subdirectory: hal/drivers
 ifneq ($(BUILD_SYS),sim)
+
+# Advantech PCI device
+obj-$(CONFIG_HAL_PCI1723) += hal_pci1723.o
+hal_pci1723-objs := hal/drivers/hal_pci1723.o $(MATHSTUB)
+obj-$(CONFIG_HAL_PCI1751) += hal_pci1751.o
+hal_pci1751-objs := hal/drivers/hal_pci1751.o $(MATHSTUB)
+obj-$(CONFIG_HAL_PCI1753) += hal_pci1753.o
+hal_pci1753-objs := hal/drivers/hal_pci1753.o $(MATHSTUB)
+obj-$(CONFIG_HAL_PCI1784) += hal_pci1784.o
+hal_pci1784-objs := hal/drivers/hal_pci1784.o $(MATHSTUB)
+# END Advantech PCI device
+
 obj-$(CONFIG_HAL_PARPORT) += hal_parport.o
 hal_parport-objs := hal/drivers/hal_parport.o $(MATHSTUB)
 obj-$(CONFIG_PCI_8255) += pci_8255.o
@@ -912,6 +928,14 @@ endif
 ../rtlib/modmath$(MODULE_EXT): $(addprefix objects/rt,$(modmath-objs))
 ../rtlib/streamer$(MODULE_EXT): $(addprefix objects/rt,$(streamer-objs))
 ../rtlib/sampler$(MODULE_EXT): $(addprefix objects/rt,$(sampler-objs))
+
+# Advantech PCI device
+../rtlib/hal_pci1723$(MODULE_EXT): $(addprefix objects/rt,$(hal_pci1723-objs))
+../rtlib/hal_pci1751$(MODULE_EXT): $(addprefix objects/rt,$(hal_pci1751-objs))
+../rtlib/hal_pci1753$(MODULE_EXT): $(addprefix objects/rt,$(hal_pci1753-objs))
+../rtlib/hal_pci1784$(MODULE_EXT): $(addprefix objects/rt,$(hal_pci1784-objs))
+# END Advantech
+
 ../rtlib/hal_parport$(MODULE_EXT): $(addprefix objects/rt,$(hal_parport-objs))
 ../rtlib/pci_8255$(MODULE_EXT): $(addprefix objects/rt,$(pci_8255-objs))
 ../rtlib/hal_tiro$(MODULE_EXT): $(addprefix objects/rt,$(hal_tiro-objs))
