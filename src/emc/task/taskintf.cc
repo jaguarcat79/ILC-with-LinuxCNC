@@ -569,15 +569,15 @@ int emcAxisUpdate(EMC_AXIS_STAT stat[], int numAxes)
     }
     
     ///for test, open txt files
-    char fname1[] = "desp_x_0325.txt";
-    char fname2[] = "desp_y_0325.txt";
-    char fname3[] = "actup_x_0325.txt";
-    char fname4[] = "actup_y_0325.txt";
+    //char fname1[] = "desp_x_0325.txt";
+    //char fname2[] = "desp_y_0325.txt";
+    //char fname3[] = "actup_x_0325.txt";
+    //char fname4[] = "actup_y_0325.txt";
     char fname5[] = "totaltime.txt";
-    char buf_dx[20] = "";
-    char buf_dy[20] = "";
-    char buf_ax[20] = "";
-    char buf_ay[20] = "";
+    //char buf_dx[20] = "";
+    //char buf_dy[20] = "";
+    //char buf_ax[20] = "";
+    //char buf_ay[20] = "";
     char buf_totalt[40] = "";
     float totalt = 0.0;
     
@@ -605,7 +605,7 @@ int emcAxisUpdate(EMC_AXIS_STAT stat[], int numAxes)
 	stat[axis].input = joint->pos_fb;
 	//for test,
 	//if(emcmotCommand.command = EMCMOT_SET_CIRCLE){
-	if(joint->record_begin == 1 && joint->record_end == 0){ //stars to record from SET_LINE(SET_CIRCLE) to SPINDLE_OFF 
+	/*if(joint->record_begin == 1 && joint->record_end == 0){ //stars to record from SET_LINE(SET_CIRCLE) to SPINDLE_OFF 
 	  switch (axis)
 	  {
 	  case 0:
@@ -631,7 +631,7 @@ int emcAxisUpdate(EMC_AXIS_STAT stat[], int numAxes)
 	    break;
 	  }
 	  
-	}
+	} */
 	if(joint->record_end == 1 && saveFlag == 0) {
 	  totalt = (float)joint->poscounter / 1000;
 	  printf("total time = %f\n", totalt);

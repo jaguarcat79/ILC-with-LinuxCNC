@@ -1077,7 +1077,7 @@ static void get_pos_cmds(long period)
     double ILCposition_x = 0.0, ILCposition_y = 0.0;
     double *ILCposition_xptr; 
     double *ILCposition_yptr;
-    int char_check;
+    //int char_check;
     struct file* ILC_x;
     struct file* ILC_y;
     ILC_x = Openfile_dx;
@@ -1364,20 +1364,20 @@ static void get_pos_cmds(long period)
 	} */
 	
 	/*if(emcmotCommand->command == EMCMOT_SET_CIRCLE){
-	   if(file_read(ILC_x, ReadOffset_x, ILCposition_cx, 8) < 0 || file_read(ILC_y, ReadOffset_y, ILCposition_cy, 8) < 0){
-	     break;	      
-	  }
-	  
-	  ILCposition_xptr = (double*)ILCposition_cx;
-	  ILCposition_yptr = (double*)ILCposition_cy;
-	  ILCposition_x = *(ILCposition_xptr);
-	  ILCposition_y = *(ILCposition_yptr);
-	  
-	  rtapi_print_msg(RTAPI_MSG_INFO, "Debug: read file in controller x:%f\n", ILCposition_x);
-	  rtapi_print_msg(RTAPI_MSG_INFO, "Debug: read file in controller y:%f\n", ILCposition_y);
-	  
-	  ReadOffset_x += 8;
-	  ReadOffset_y += 8;
+	   if (file_read(ILC_x, ReadOffset_x, ILCposition_cx, 8) < 0 || file_read(ILC_y, ReadOffset_y, ILCposition_cy, 8) < 0) {
+	     break;
+	   } else {
+	     ILCposition_xptr = (double*)ILCposition_cx;
+	     ILCposition_yptr = (double*)ILCposition_cy;
+	     ILCposition_x = *(ILCposition_xptr);
+	     ILCposition_y = *(ILCposition_yptr);
+	     
+	     rtapi_print_msg(RTAPI_MSG_INFO, "Debug: read file in controller x:%f\n", ILCposition_x);
+	     rtapi_print_msg(RTAPI_MSG_INFO, "Debug: read file in controller y:%f\n", ILCposition_y);
+	     
+	     ReadOffset_x += 8;
+	     ReadOffset_y += 8;
+	     }
 	} */
 	
 	if(PosCountFlag_begin == 1 && stop_count == 0){
@@ -1393,19 +1393,27 @@ static void get_pos_cmds(long period)
 	    old_pos_cmd = joint->pos_cmd;
 	    
 	    //for test,
-	    //if(emcmotCommand->command == EMCMOT_SET_CIRCLE && joint_num == 0){
-	      //joint->pos_cmd = ILCposition_x;
+	    /*if (emcmotCommand->command == EMCMOT_SET_CIRCLE && joint_num == 0) {
+	      if (ILCposition_xptr != NULL) {
+		joint->pos_cmd = ILCposition_x;
 	      //rtapi_print_msg(RTAPI_MSG_INFO, "Debug: joint->pos_cmd x= %f\n", joint->pos_cmd);
-	    //}
-	    //else if(emcmotCommand->command == EMCMOT_SET_CIRCLE && joint_num == 1){
-	      //joint->pos_cmd = ILCposition_y;
+	      } else {
+		joint->pos_cmd = cubicInterpolate(&(joint->cubic), 0, 0, 0, 0);
+	      }
+	    
+	    } else if (emcmotCommand->command == EMCMOT_SET_CIRCLE && joint_num == 1) {
+	      if (ILCposition_yptr != NULL) {
+	      joint->pos_cmd = ILCposition_y;
 	      //rtapi_print_msg(RTAPI_MSG_INFO, "Debug: joint->pos_cmd y= %f\n", joint->pos_cmd);
-	    //}
-	    //else{ 
-	    /* interpolate to get new one */
-	    joint->pos_cmd = cubicInterpolate(&(joint->cubic), 0, 0, 0, 0); // for test, now interpolate
-	    //rtapi_print_msg(RTAPI_MSG_INFO, "Debug: joint->pos_cmd = %f\n", joint->pos_cmd);	    
-	    //}
+	      } else {
+		joint->pos_cmd = cubicInterpolate(&(joint->cubic), 0, 0, 0, 0);
+	      } 
+	    
+	    } else{ */
+	      /* interpolate to get new one */
+	      joint->pos_cmd = cubicInterpolate(&(joint->cubic), 0, 0, 0, 0); // for test, now interpolate
+	      //rtapi_print_msg(RTAPI_MSG_INFO, "Debug: joint->pos_cmd = %f\n", joint->pos_cmd);	    
+	      //}
 	    
 	    joint->vel_cmd = (joint->pos_cmd - old_pos_cmd) * servo_freq;
 	}
@@ -2061,12 +2069,12 @@ static void update_status(void)
 #endif
 
     //for test,
-    char testbuf[20] = "Hello";
+    /*char testbuf[20] = "Hello";
     double testvalue;
     int testvaluei;
     double* testfptr;
     char* testcptr;
-    testvalue = 22.2;
+    testvalue = 22.2; */
     
     /* copy status info from private joint structure to status
        struct in shared memory */
