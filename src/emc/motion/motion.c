@@ -21,7 +21,8 @@
 #include "mot_priv.h"
 #include "rtapi_math.h"
 
-//for test, call libraries in kernel space
+/* call libraries in kernel space
+   by Yu-Tsai Yeh */  
 #include <linux/fs.h>
 #include <asm/segment.h>
 #include <asm/uaccess.h>
@@ -121,20 +122,15 @@ int PosCountFlag_end;
 int poscounter;
 //long long int begin , end;
 //long int total_time;
-int ccc = 0;
 int stop_count;
 double *DespBuffer_x;
 double *DespBuffer_y;
 double *ActupBuffer_x;
 double *ActupBuffer_y;
-char *procbuffer;
 int bufferCounter_dx;
 int bufferCounter_dy;
 int bufferCounter_ax;
 int bufferCounter_ay;
-struct proc_dir_entry *desp_x;
-char *procfs_buffer; /* /proc method */
-unsigned long procfs_buffer_size = 0; /* /proc method */
 
 /***********************************************************************
 *                  LOCAL VARIABLE DECLARATIONS                         *
@@ -176,7 +172,8 @@ static int setServoCycleTime(double secs);
 *                     PUBLIC FUNCTION CODE                             *
 ************************************************************************/
 
-//for test, open and close
+/* open and close method with filp_open and filp_close
+   by Yu-Tsai Yeh */
 struct file* file_open(const char* path, int flags, int rights) {
     struct file* filp = NULL;
     mm_segment_t oldfs;
@@ -197,6 +194,8 @@ void file_close(struct file* file) {
     filp_close(file, NULL);
 }
 
+/* read and write method with vfs_read and vfs_write
+   by Yu-Tsai Yeh */
 int file_read(struct file* file, unsigned long long offset, unsigned char* data, unsigned int size) {
   mm_segment_t oldfs;
   int ret;
@@ -221,74 +220,6 @@ int file_write(struct file* file, unsigned long long offset, unsigned char* data
   
   set_fs(oldfs);
   return ret;
-}
-
-/*int vconvert(const char *buffer, const char *fmt, ...) {
-  int rc;
-  va_list arg_ptr;
-  va_start(arg_ptr, fmt);
-  rc = vsscanf(buffer, fmt, arg_ptr);
-  va_end(arg_ptr);
-  return(rc);  
-} */
-
-void itoa_handcode(int n, char s[]) {
-  int i,j;
-
-  i = 0;
-  /*do{
-    s[i++] = n%10 + '0';
-  } while((n/=10) > 0); */
-  
-  for(j = n; j > 0; j/=10){
-    s[i++] = j%10 + '0';
-  }
-  s[i] = '\0';
-}
-
-/*void reverse(char s[]) {
-  int i, j;
-  char c;
-  
-  for(i = 0, j = stringcounter; i < j; i++, j--)
-  {
-    c = s[i];
-    s[i] = s[j];
-    s[j] = c;
-  }  
-} */
-
-float StringToFloat(const char* string){
-  float rez = 0, fact = 1;
-  int point_seen;
-  int dd;
-  if (*string == '-'){
-    string++;
-    fact = -1;
-  }
-  for (point_seen = 0; *string; string++){
-    if (*string == '.'){
-      point_seen = 1; 
-      continue;
-    }
-    dd= *string - '0';
-    if (dd >= 0 && dd <= 9){
-      if (point_seen) fact /= 10.0f;
-      rez = rez * 10.0f + (float)dd;
-    }
-  }
-  return rez * fact;
-}
-
-int procfile_write(struct file *file, const char *buffer, unsigned long count, void *data) {
-  
-  procfs_buffer_size = count;
-  
-  if(copy_from_user(procfs_buffer, buffer, procfs_buffer_size)) {
-    return -EFAULT;
-  }
-  
-  return procfs_buffer_size;  
 }
 
 void emcmot_config_change(void)
@@ -393,14 +324,14 @@ int rtapi_app_main(void)
     bufferCounter_ax = 0;
     bufferCounter_ay = 0;
     
-    //Openfile_dx = file_open("/mnt/ramdisk/desp_x_0408.txt", O_RDWR | O_CREAT, 0666);
-    //Openfile_dy = file_open("/mnt/ramdisk/desp_y_0408.txt", O_RDWR | O_CREAT, 0666);
-    Openfile_dx = file_open("/mnt/ramdisk/desp_x_L5.txt", O_RDWR | O_CREAT, 0666);
-    Openfile_dy = file_open("/mnt/ramdisk/desp_y_L5.txt", O_RDWR | O_CREAT, 0666);
+    Openfile_dx = file_open("/mnt/ramdisk/desp_x_test.txt", O_RDWR | O_CREAT, 0666);
+    Openfile_dy = file_open("/mnt/ramdisk/desp_y_test.txt", O_RDWR | O_CREAT, 0666);
+    //Openfile_dx = file_open("/mnt/ramdisk/desp_x_L5.txt", O_RDWR | O_CREAT, 0666);
+    //Openfile_dy = file_open("/mnt/ramdisk/desp_y_L5.txt", O_RDWR | O_CREAT, 0666);
     //Openfile_ax = file_open("/mnt/ramdisk/actup_x_L5.txt", O_RDWR | O_CREAT, 0666);
     //Openfile_ay = file_open("/mnt/ramdisk/actup_y_L5.txt", O_RDWR | O_CREAT, 0666);    
-    //Openfile_ax = file_open("/mnt/ramdisk/actup_y.txt", O_RDWR | O_CREAT, 0666);
-    //Openfile_ay = file_open("/mnt/ramdisk/actup_y.txt", O_RDWR | O_CREAT, 0666);
+    //Openfile_ax = file_open("/mnt/ramdisk/test_x.txt", O_RDWR | O_CREAT, 0666);
+    //Openfile_ay = file_open("/mnt/ramdisk/test_y.txt", O_RDWR | O_CREAT, 0666);
     //desp_x = create_proc_entry("despx", 0644, NULL);
     
     rtapi_print_msg(RTAPI_MSG_INFO, "MOTION: init_module() complete\n");
@@ -415,7 +346,8 @@ int rtapi_app_main(void)
 void rtapi_app_exit(void)
 {
     int retval;
-    //for test,
+    /* initial variables 
+       by Yu-Tsai Yeh */
     int i, j;
     char* Dpx;
     char* Dpy;
@@ -430,7 +362,8 @@ void rtapi_app_exit(void)
 
     rtapi_print_msg(RTAPI_MSG_INFO, "MOTION: cleanup_module() started.\n");
     
-    //for test,
+    /* write to files
+       by Yu-Tsai Yeh */
     j = 0;
     for(i = 0; i < poscounter-1; i++) {
       xPtr = (DespBuffer_x + i);
@@ -476,7 +409,7 @@ void rtapi_app_exit(void)
       }
     }
     
-    //for test, close file
+    /* close file */
     ReadOffset_x = 0;
     ReadOffset_y = 0;
     
@@ -489,7 +422,6 @@ void rtapi_app_exit(void)
     file_close(Openfile_dy);
     //file_close(Openfile_ax);
     //file_close(Openfile_ay);
-    //remove_proc_entry("despx", );
 
     retval = hal_stop_threads();
     if (retval < 0) {
@@ -1050,7 +982,7 @@ static int init_comm_buffers(void)
     rtapi_print_msg(RTAPI_MSG_INFO,
 	"MOTION: init_comm_buffers() starting...\n");
 	
-    //for test, create buffers to store motor positions
+    /* create buffers to store motor positions */
     //DespBuffer_x = hal_malloc(6000 * sizeof(double));
     //DespBuffer_y = hal_malloc(6000 * sizeof(double));
     //ActupBuffer_x = hal_malloc(6000 * sizeof(double));
@@ -1059,7 +991,6 @@ static int init_comm_buffers(void)
     DespBuffer_y = vmalloc(6000 * sizeof(double));
     ActupBuffer_x = vmalloc(6000 * sizeof(double));
     ActupBuffer_y = vmalloc(6000 * sizeof(double));
-    //procbuffer = vmalloc(5000 * sizeof(double));
 
     emcmotStruct = 0;
     emcmotDebug = 0;

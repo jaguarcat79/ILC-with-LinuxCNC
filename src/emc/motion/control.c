@@ -35,10 +35,6 @@
 *                  LOCAL VARIABLE DECLARATIONS                         *
 ************************************************************************/
 
-//for test,
-long long int begintest = 0, endtest = 0;
-long int totaltimetest = 0;
-long int totaltimetest2 = 0;
 
 /*! \todo FIXME - this is a leftover global, it will eventually go away */
 int rehomeAll;
@@ -528,9 +524,6 @@ static void process_inputs(void)
 	    joint->pos_fb = joint->motor_pos_fb -
 		(joint->backlash_filt + joint->motor_offset);		
 	}
-	///for test
-	//rtapi_print_msg(RTAPI_MSG_DBG , "joint->pos_fb = %lf \n", joint->pos_fb);
-	//rtapi_print_msg(RTAPI_MSG_DBG , "joint->pos_cmd = %lf \n", joint->pos_cmd);
 	
 	/* calculate following error */
 	joint->ferror = joint->pos_cmd - joint->pos_fb;
@@ -650,7 +643,7 @@ static void do_forward_kins(void)
 	    /* if joint is not active, don't even look at its limits */
 	    continue;
 	}
-	///for test,
+	//for test,
 	/*if(joint_num == 0)
 	  rtapi_print_msg(RTAPI_MSG_DBG , "Debug: [Do_forward kins]\n"); */
     }
@@ -770,7 +763,7 @@ static void check_for_faults(void)
 	/* end of if JOINT_ACTIVE_FLAG(joint) */
 	}
     /* end of check for joint faults loop */
-    ///for test
+    //for test
     /*if(joint_num == 0)
       rtapi_print_msg(RTAPI_MSG_DBG , "Debug: [Check_for_faults]\n"); */
     }
@@ -896,7 +889,7 @@ static void set_operating_mode(void)
 		SET_MOTION_COORD_FLAG(1);
 		SET_MOTION_TELEOP_FLAG(0);
 		SET_MOTION_ERROR_FLAG(0);
-		///for test, print and file open
+		//for test, print and file open
 		rtapi_print_msg(RTAPI_MSG_DBG , "Debug: [Set_operating_mode] emcmotDebug coord\n");
 		
 	    } else {
@@ -957,7 +950,7 @@ static void handle_jogwheels(void)
 	    /* if joint is not active, skip it */
 	    continue;
 	}
-	///for test
+	//for test
 	/*if(joint_num == 0)
 	  rtapi_print_msg(RTAPI_MSG_DBG , "Debug: [Handle_jogwheels]\n"); */
 	
@@ -1070,14 +1063,15 @@ static void get_pos_cmds(long period)
     
     //for test,
     // by Yu-Tsai, Yeh
-    char ILCposition_cx[72];
-    char ILCposition_cy[72];
+    char ILCposition_cx[20] = {'\0'};
+    char ILCposition_cy[20] = {'\0'};
     //char *ILCposition_cx;
     //char *ILCposition_cy;
     double ILCposition_x = 0.0, ILCposition_y = 0.0;
     double *ILCposition_xptr; 
     double *ILCposition_yptr;
-    //int char_check;
+    int char_check;
+    int reading = 0;
     struct file* ILC_x;
     struct file* ILC_y;
     ILC_x = Openfile_dx;
@@ -1264,12 +1258,6 @@ static void get_pos_cmds(long period)
        come up some values when CMD 110, code 3 ENABLE
        disappear when CMD 339, code 4 EISABLE */
     case EMCMOT_MOTION_COORD:  
-      //for test,
-      //begintest = rtapi_get_clocks();
-      //totaltimetest = (long int)(endtest - begintest) *1000000 / cpu_khz;
-      //totaltimetest2 += totaltimetest;
-      //rtapi_print_msg(RTAPI_MSG_INFO, "Debug: sample time= %ld ns\n", totaltimetest);
-      //rtapi_print_msg(RTAPI_MSG_INFO, "Debug: total sample time= %ld ns\n", totaltimetest2);
 	  
 	/* check joint 0 to see if the interpolators are empty */
 	while (cubicNeedNextPoint(&(joints[0].cubic))) {
@@ -1293,7 +1281,7 @@ static void get_pos_cmds(long period)
 		/* point to joint struct */
 		joint = &joints[joint_num];
 		joint->coarse_pos = positions[joint_num];
-		///for test,
+		//for test,
 		/*if(joint_num == 0 && joint->coarse_pos != 0)
 		  rtapi_print_msg(RTAPI_MSG_DBG , "Debug: [get_pos_cmd] coarse_pos(after Inverse) : %lf\n", joint->coarse_pos); */
 		
@@ -1303,46 +1291,43 @@ static void get_pos_cmds(long period)
 		cubicAddPoint(&(joint->cubic), joint->coarse_pos);
 	    }
 	    /* END OF OUTPUT KINS */
-	}	
-	//for test,
-	/*if(emcmotCommand->command == EMCMOT_SET_CIRCLE){
-	  rtapi_print_msg(RTAPI_MSG_INFO, "Debug: readoffset_x:%d\n", ReadOffset_x);
-	  rtapi_print_msg(RTAPI_MSG_INFO, "Debug: readoffset_y:%d\n", ReadOffset_y);
-	  if(file_read(ILC_x, ReadOffset_x, ILCposition_cx, 9) < 0 || file_read(ILC_y, ReadOffset_y, ILCposition_cy, 9) < 0){
-	    break;	      
-	  }
-	  else{
-	    for(char_check = 8; char_check <= 11; char_check++)
-	    {
-	      if(ILCposition_cx[char_check] == '\n'){
+	}
+	
+	/* read new commanded positions from files
+	   by Yu-Tsai Yeh */
+	if(emcmotCommand->command == EMCMOT_SET_CIRCLE){
+	   if (file_read(ILC_x, ReadOffset_x, ILCposition_cx, 8) < 0 || file_read(ILC_y, ReadOffset_y, ILCposition_cy, 8) < 0) {
+	     reading = 0;
+	     break;
+	   } else {
+	     /* previous method: needed to transform strings to floating points */
+	     /*for (char_check = 8; char_check <= 11; char_check++) {
+	      if (ILCposition_cx[char_check] == '\n') {
 		ILCposition_cx[char_check] = '\0';
 		ReadOffset_x += char_check +1;
-	      } else{
-		ILCposition_cx[0] = '\0';
+		break;
+	      } else {
+		//ILCposition_cx[0] = '\0';
 		file_read(ILC_x, ReadOffset_x, ILCposition_cx, char_check+2);
 		continue;
 	      }
-	    }
+	    } */
 	    
-	    for(char_check = 8; char_check <= 11; char_check++)
-	    {
-	      if(ILCposition_cy[char_check] == '\n'){
-		ILCposition_cy[char_check] = '\0';
+	    
+	    /*for (char_check = 8; char_check <= 11; char_check++) {
+	      if (ILCposition_cy[char_check] == '\n') {
+		//ILCposition_cy[char_check] = '\0';
 		ReadOffset_y += char_check +1;
+		break;
 	      } else{
-		ILCposition_cy[0] = '\0';
+		//ILCposition_cy[0] = '\0';
 		file_read(ILC_y, ReadOffset_y, ILCposition_cy, char_check+2);
 		continue;
-	      }
-	    }
+	      } */
 	    
-	    ILCposition_x = StringToFloat(ILCposition_cx);
-	    ILCposition_x /= 25.4;
-	    ILCposition_y = StringToFloat(ILCposition_cy);
-	    ILCposition_y /= 25.4;
-	    rtapi_print_msg(RTAPI_MSG_INFO, "Debug: read file in controller x:%f\n", ILCposition_x);
-	    rtapi_print_msg(RTAPI_MSG_INFO, "Debug: read file in controller y:%f\n", ILCposition_y); 
-	    rtapi_print_msg(RTAPI_MSG_INFO, "Debug: read file in controller x:%c\n", ILCposition_cx[0]);
+	    //rtapi_print_msg(RTAPI_MSG_INFO, "Debug: read file in controller x:%s\n", ILCposition_cx);
+	    //rtapi_print_msg(RTAPI_MSG_INFO, "Debug: read file in controller y:%s\n", ILCposition_cy);
+	    /*rtapi_print_msg(RTAPI_MSG_INFO, "Debug: read file in controller x:%c\n", ILCposition_cx[0]);
 	    rtapi_print_msg(RTAPI_MSG_INFO, "Debug: read file in controller x:%c\n", ILCposition_cx[1]);
 	    rtapi_print_msg(RTAPI_MSG_INFO, "Debug: read file in controller x:%c\n", ILCposition_cx[2]);
 	    rtapi_print_msg(RTAPI_MSG_INFO, "Debug: read file in controller x:%c\n", ILCposition_cx[3]);
@@ -1350,7 +1335,6 @@ static void get_pos_cmds(long period)
 	    rtapi_print_msg(RTAPI_MSG_INFO, "Debug: read file in controller x:%c\n", ILCposition_cx[5]);
 	    rtapi_print_msg(RTAPI_MSG_INFO, "Debug: read file in controller x:%c\n", ILCposition_cx[6]);
 	    rtapi_print_msg(RTAPI_MSG_INFO, "Debug: read file in controller x:%c\n", ILCposition_cx[7]);
-	    rtapi_print_msg(RTAPI_MSG_INFO, "Debug: read file in controller x:%c\n", ILCposition_cx[8]);
 	    rtapi_print_msg(RTAPI_MSG_INFO, "Debug: read file in controller y:%c\n", ILCposition_cy[0]);
 	    rtapi_print_msg(RTAPI_MSG_INFO, "Debug: read file in controller y:%c\n", ILCposition_cy[1]);
 	    rtapi_print_msg(RTAPI_MSG_INFO, "Debug: read file in controller y:%c\n", ILCposition_cy[2]);
@@ -1359,26 +1343,23 @@ static void get_pos_cmds(long period)
 	    rtapi_print_msg(RTAPI_MSG_INFO, "Debug: read file in controller y:%c\n", ILCposition_cy[5]);
 	    rtapi_print_msg(RTAPI_MSG_INFO, "Debug: read file in controller y:%c\n", ILCposition_cy[6]);
 	    rtapi_print_msg(RTAPI_MSG_INFO, "Debug: read file in controller y:%c\n", ILCposition_cy[7]);
-	    rtapi_print_msg(RTAPI_MSG_INFO, "Debug: read file in controller y:%c\n", ILCposition_cy[8]);
-	  }
-	} */
-	
-	/*if(emcmotCommand->command == EMCMOT_SET_CIRCLE){
-	   if (file_read(ILC_x, ReadOffset_x, ILCposition_cx, 8) < 0 || file_read(ILC_y, ReadOffset_y, ILCposition_cy, 8) < 0) {
-	     break;
-	   } else {
-	     ILCposition_xptr = (double*)ILCposition_cx;
-	     ILCposition_yptr = (double*)ILCposition_cy;
-	     ILCposition_x = *(ILCposition_xptr);
-	     ILCposition_y = *(ILCposition_yptr);
-	     
-	     rtapi_print_msg(RTAPI_MSG_INFO, "Debug: read file in controller x:%f\n", ILCposition_x);
-	     rtapi_print_msg(RTAPI_MSG_INFO, "Debug: read file in controller y:%f\n", ILCposition_y);
-	     
-	     ReadOffset_x += 8;
-	     ReadOffset_y += 8;
-	     }
-	} */
+	    rtapi_print_msg(RTAPI_MSG_INFO, "Debug: read file in controller y:%c\n", ILCposition_cy[8])
+	    
+	    //ILCposition_x = StringToFloat(ILCposition_cx);
+	    //ILCposition_y = StringToFloat(ILCposition_cy); 
+	    /* end method */
+	    
+	    /* current version */
+	    reading = 1;
+	    ILCposition_xptr = (double*)ILCposition_cx;
+	    ILCposition_yptr = (double*)ILCposition_cy;
+	    ILCposition_x = *(ILCposition_xptr);
+	    ILCposition_y = *(ILCposition_yptr);
+	    
+	    ReadOffset_x += 8;
+	    ReadOffset_y += 8;
+	   }
+	} 
 	
 	if(PosCountFlag_begin == 1 && stop_count == 0){
 	  poscounter += 1;
@@ -1392,28 +1373,21 @@ static void get_pos_cmds(long period)
 	    /* save old command */
 	    old_pos_cmd = joint->pos_cmd;
 	    
-	    //for test,
-	    /*if (emcmotCommand->command == EMCMOT_SET_CIRCLE && joint_num == 0) {
-	      if (ILCposition_xptr != NULL) {
-		joint->pos_cmd = ILCposition_x;
-	      //rtapi_print_msg(RTAPI_MSG_INFO, "Debug: joint->pos_cmd x= %f\n", joint->pos_cmd);
-	      } else {
-		joint->pos_cmd = cubicInterpolate(&(joint->cubic), 0, 0, 0, 0);
-	      }
+	    /* interpolate to get new one */
+	    joint->pos_cmd = cubicInterpolate(&(joint->cubic), 0, 0, 0, 0); // now interpolate
 	    
-	    } else if (emcmotCommand->command == EMCMOT_SET_CIRCLE && joint_num == 1) {
-	      if (ILCposition_yptr != NULL) {
+	    /* replace positions which created from interpolater
+	       by Yu-Tsai Yeh */
+	    // axis 0: x
+	    if (reading == 1 && joint_num == 0) {
+	      joint->pos_cmd = ILCposition_x;
+	      //rtapi_print_msg(RTAPI_MSG_INFO, "Debug: joint->pos_cmd x= %f\n", joint->pos_cmd);
+	    
+	    // axis 1: y 
+	    } else if (reading == 1 && joint_num == 1) {
 	      joint->pos_cmd = ILCposition_y;
 	      //rtapi_print_msg(RTAPI_MSG_INFO, "Debug: joint->pos_cmd y= %f\n", joint->pos_cmd);
-	      } else {
-		joint->pos_cmd = cubicInterpolate(&(joint->cubic), 0, 0, 0, 0);
-	      } 
-	    
-	    } else{ */
-	      /* interpolate to get new one */
-	      joint->pos_cmd = cubicInterpolate(&(joint->cubic), 0, 0, 0, 0); // for test, now interpolate
-	      //rtapi_print_msg(RTAPI_MSG_INFO, "Debug: joint->pos_cmd = %f\n", joint->pos_cmd);	    
-	      //}
+	    }
 	    
 	    joint->vel_cmd = (joint->pos_cmd - old_pos_cmd) * servo_freq;
 	}
@@ -1559,7 +1533,7 @@ static void get_pos_cmds(long period)
 	    /* save old command */
 	    old_pos_cmd = joint->pos_cmd;
 	    /* interpolate to get new one */
-	    joint->pos_cmd = cubicInterpolate(&(joint->cubic), 0, 0, 0, 0); //for test, now interpolate
+	    joint->pos_cmd = cubicInterpolate(&(joint->cubic), 0, 0, 0, 0);
 	    joint->vel_cmd = (joint->pos_cmd - old_pos_cmd) * servo_freq;
 	}
 
@@ -1729,7 +1703,7 @@ static void compute_screw_comp(void)
 	    /* if joint is not active, skip it */
 	    continue;
 	}
-	///for test
+	//for test
 	/*if(joint_num == 0)
 	  rtapi_print_msg(RTAPI_MSG_DBG , "Debug: [Compute_screw_comp]\n"); */
 	
@@ -2011,7 +1985,8 @@ static void output_to_hal(void)
     for (joint_num = 0; joint_num < num_joints; joint_num++) {
 	/* point to joint struct */
 	joint = &joints[joint_num];
-	///for test
+	
+	//for test
 	if(joint_num == 0)
 	  rtapi_print_msg(RTAPI_MSG_DBG , "Debug: [Output_to_hal]\n");
 	
@@ -2025,8 +2000,6 @@ static void output_to_hal(void)
 	*(joint_data->motor_pos_cmd) = joint->motor_pos_cmd;
 	*(joint_data->joint_pos_cmd) = joint->pos_cmd;	
 	*(joint_data->joint_pos_fb) = joint->pos_fb;
-	//for test, joint->pos_cmd would not be zero when emc_set_motor_offset command starts
-	//rtapi_print_msg(RTAPI_MSG_DBG , "ToHal:joint->pos_cmd = %f \n", joint->pos_cmd);
 	  
 	*(joint_data->amp_enable) = GET_JOINT_ENABLE_FLAG(joint);
 	*(joint_data->index_enable) = joint->index_enable;
@@ -2068,20 +2041,13 @@ static void update_status(void)
     static int old_motion_flag;
 #endif
 
-    //for test,
-    /*char testbuf[20] = "Hello";
-    double testvalue;
-    int testvaluei;
-    double* testfptr;
-    char* testcptr;
-    testvalue = 22.2; */
     
     /* copy status info from private joint structure to status
        struct in shared memory */
     for (joint_num = 0; joint_num < num_joints; joint_num++) {
 	/* point to joint data */
 	joint = &joints[joint_num];
-	///for test
+	//for test
 	if(joint_num == 0)
 	  rtapi_print_msg(RTAPI_MSG_DBG , "Debug: [Update_status]\n\n");
 	
@@ -2098,7 +2064,8 @@ static void update_status(void)
 	joint_status->flag = joint->flag;
 	joint_status->pos_cmd = joint->pos_cmd;
 	joint_status->pos_fb = joint->pos_fb;
-	//for test, pass record(begin/end) values from motion to taskintf
+	/* pass record(begin/end) values from motion to taskintf
+	   by Yu-Tsai Yeh */
 	joint_status->record_begin = PosCountFlag_begin;
 	joint_status->record_end = PosCountFlag_end;
 	if(PosCountFlag_begin == 1 && PosCountFlag_end == 0){
@@ -2122,20 +2089,7 @@ static void update_status(void)
 	  //joint_status->record_end = PosCountFlag_end;
 	  joint_status->poscounter = poscounter-1;
 	  stop_count += 1;
-	  //snprintf(testbuf, 20, "%d", testvaluei);
-	  //rtapi_print_msg(RTAPI_MSG_INFO, "Debug: %s\n",testbuf);
-	  //file_write(ptr, 0, testbuf, 20);
-	}
-	//for test, this method should work until write files function fixed
-	//testvalue = 10.123456;
-	//testfptr = &testvalue;
-	//testcptr = (char*) testfptr;
-	//procfile_write(desp_x, procbuffer, 8, testcptr);
-	//rtapi_print_msg(RTAPI_MSG_INFO, "Debug: testcptr= %s\n", testcptr);
-	//file_write(ptr, 0, testcptr, 4);
-	//file_write(ptr, 5, testcptr, 4);
-	//file_write(ptr, 9, testcptr, 4);	
-	
+	}	
 	
 	joint_status->vel_cmd = joint->vel_cmd;
 	joint_status->ferror = joint->ferror;
